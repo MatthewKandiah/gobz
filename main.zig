@@ -58,6 +58,12 @@ pub fn main() void {
             if (event.type == c.SDL_QUIT) {
                 running = false;
             }
+            if (event.type == c.SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
+                    c.SDLK_ESCAPE => running = false,
+                    else => {},
+                }
+            }
             if (event.type == c.SDL_WINDOWEVENT) {
                 // handle window resizing
                 surface_info = getSurfaceInfo(window);
