@@ -10,6 +10,7 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-
+    main_exe.linkLibC();
+    main_exe.linkSystemLibrary("SDL2");
     b.installArtifact(main_exe);
 }
