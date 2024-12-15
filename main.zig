@@ -12,17 +12,25 @@ pub fn main() void {
         std.debug.panic("SDL_Init failed: {}\n", .{sdl_init});
     }
 
-    const window = c.SDL_CreateWindow(
+    const window: *c.SDL_Window = c.SDL_CreateWindow(
         "Gobz",
         c.SDL_WINDOWPOS_UNDEFINED,
         c.SDL_WINDOWPOS_UNDEFINED,
         WIDTH,
         HEIGHT,
-        c.SDL_WINDOW_RESIZABLE,
-    );
+        0,//c.SDL_WINDOW_RESIZABLE,
+    ) orelse @panic("no window");
 
-    const surface = c.SDL_GetWindowSurface(window);
-    _ = surface;
+    const surface: *c.SDL_Surface = c.SDL_GetWindowSurface(window) orelse std.debug.panic("No surface\n", .{});
+    const pixels: [*]u8 = @ptrCast(surface.pixels orelse @panic("No pixels"));
+    const pixels_count = 4 * WIDTH * HEIGHT;
+    const pixels_slice = pixels[0..pixels_count];
+    for (pixels_slice) |*p| {
+        p.* = 122;
+    }
+    if (c.SDL_UpdateWindowSurface(window) < 0) {
+        @panic("Couldn't update window surface");
+    }
 
     var running = true;
     var event: c.SDL_Event = undefined;
