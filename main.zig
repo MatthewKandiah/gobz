@@ -36,6 +36,7 @@ pub fn main() void {
                 running = false;
             }
             if (event.type == c.SDL_WINDOWEVENT) {
+                // handle window resizing
                 surface_info = getSurfaceInfo(window);
             }
         }

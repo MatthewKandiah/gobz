@@ -10,7 +10,10 @@ pub fn build(b: *std.Build) !void {
         .target = target,
         .optimize = optimize,
     });
-    main_exe.linkLibC();
+    main_exe.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "deps/include" } });
+    main_exe.addCSourceFile(.{ .file = .{ .src_path = .{ .owner = b, .sub_path = "deps/src/stb_image_impl.c" } } });
+    main_exe.addCSourceFile(.{ .file = .{ .src_path = .{ .owner = b, .sub_path = "deps/src/stb_image_write_impl.c" } } });
     main_exe.linkSystemLibrary("SDL2");
+    main_exe.linkLibC();
     b.installArtifact(main_exe);
 }
