@@ -35,6 +35,8 @@ pub fn main() void {
     var surface_info = getSurfaceInfo(window);
     var running = true;
     var event: c.SDL_Event = undefined;
+    var pos_x: usize = 0;
+    var pos_y: usize = 0;
     while (running) {
         // clear screen
         for (surface_info.bytes) |*p| {
@@ -48,7 +50,7 @@ pub fn main() void {
         for (0..input_height) |j| {
             for (0 .. input_width * 4) |i| {
                 const input_byte_index = j * input_width * 4 + i;
-                const surface_byte_index = j * surface_info.width_pixels * 4 + i;
+                const surface_byte_index = (j + pos_y) * surface_info.width_pixels * 4 + (i + 4 * pos_x);
                 surface_info.bytes[surface_byte_index] = input_data[input_byte_index];
             }
         }
@@ -61,6 +63,10 @@ pub fn main() void {
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     c.SDLK_ESCAPE => running = false,
+                    c.SDLK_UP => pos_y -= 1,
+                    c.SDLK_DOWN => pos_y += 1,
+                    c.SDLK_LEFT => pos_x -= 1,
+                    c.SDLK_RIGHT => pos_x += 1,
                     else => {},
                 }
             }
