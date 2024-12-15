@@ -1,12 +1,23 @@
 const std = @import("std");
-const c = @cImport(
-    @cInclude("SDL2/SDL.h"),
-);
+const c = @cImport({
+    @cInclude("SDL2/SDL.h");
+    @cInclude("stb_image.h");
+});
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 600;
 
 pub fn main() void {
+    // load image into memory
+    var input_width_raw: c_int = undefined;
+    var input_height_raw: c_int = undefined;
+    var input_bytes_per_pixel: c_int = undefined;
+    var input_data: [*]u8 = undefined;
+    input_data = c.stbi_load(@ptrCast("./sprites/vampire.png"), &input_width_raw, &input_height_raw, &input_bytes_per_pixel, 0);
+    const input_width: usize = @intCast(input_width_raw);
+    const input_height: usize = @intCast(input_height_raw);
+
+    // set up window
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
         std.debug.panic("SDL_Init failed: {}\n", .{sdl_init});
@@ -28,6 +39,18 @@ pub fn main() void {
         // clear screen
         for (surface_info.bytes) |*p| {
             p.* = 122;
+        }
+
+        std.debug.assert(input_bytes_per_pixel == 4);
+        std.debug.assert(input_height < surface_info.height_pixels);
+        std.debug.assert(input_width < surface_info.width_pixels);
+        // draw example image
+        for (0..input_height) |j| {
+            for (0 .. input_width * 4) |i| {
+                const input_byte_index = j * input_width * 4 + i;
+                const surface_byte_index = j * surface_info.width_pixels * 4 + i;
+                surface_info.bytes[surface_byte_index] = input_data[input_byte_index];
+            }
         }
 
         // handle events
