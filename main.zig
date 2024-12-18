@@ -11,7 +11,12 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    const sprite_map = try SpriteMap.load(allocator, "./sprites/character32x32.png", 32, 32);
+    // assets from https://sethbb.itch.io/32rogues
+    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", 32,32);
+    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", 32,32);
+    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", 32,32);
+    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", 32,32);
+    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", 32,32);
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
@@ -27,9 +32,11 @@ pub fn main() !void {
         c.SDL_WINDOW_RESIZABLE,
     ) orelse @panic("no window");
 
-    const render_data1 = sprite_map.get(0, 0);
-    const render_data2 = sprite_map.get(3, 4);
-    const render_data3 = sprite_map.get(2, 20);
+    const animal_render_data = animals_sprite_map.get(0,0);
+    const item_render_data = items_sprite_map.get(0,0);
+    const monster_render_data = monsters_sprite_map.get(0,0);
+    const rogue_render_data = rogues_sprite_map.get(0,0);
+    const tile_render_data = tiles_sprite_map.get(0,0);
 
     var surface_info = getSurface(window);
     var running = true;
@@ -43,9 +50,11 @@ pub fn main() !void {
         }
 
         // draw example images
-        surface_info.draw(render_data1, pos_x, pos_y);
-        surface_info.draw(render_data2, pos_x + 64, pos_y);
-        surface_info.draw(render_data3, pos_x, pos_y + 64);
+        surface_info.draw(animal_render_data, pos_x, pos_y);
+        surface_info.draw(item_render_data, pos_x + 64, pos_y);
+        surface_info.draw(monster_render_data, pos_x, pos_y + 64);
+        surface_info.draw(rogue_render_data, pos_x + 64, pos_y + 64);
+        surface_info.draw(tile_render_data, pos_x + 128, pos_y + 64);
 
         // handle events
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
