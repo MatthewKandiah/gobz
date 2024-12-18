@@ -43,66 +43,9 @@ pub fn main() !void {
         }
 
         // draw example images
-        var output_idx1: usize = (pos_x + pos_y * surface_info.width_pixels);
-        var count: usize = 0;
-        for (0..render_data1.data.len / 4) |i| {
-            const r = render_data1.data[4 * i];
-            const g = render_data1.data[4 * i + 1];
-            const b = render_data1.data[4 * i + 2];
-            const a = render_data1.data[4 * i + 3];
-    
-            surface_info.bytes[4 * output_idx1] = b;
-            surface_info.bytes[4 * output_idx1 + 1] = g;
-            surface_info.bytes[4 * output_idx1 + 2] = r;
-            surface_info.bytes[4 * output_idx1 + 3] = a;
-
-            count += 1;
-            output_idx1 += 1;
-            if (count >= render_data1.width) {
-                count = 0;
-                output_idx1 += surface_info.width_pixels - render_data1.width;
-            }
-        }
-        var output_idx2: usize = (pos_x + pos_y * surface_info.width_pixels + 64);
-        var count2: usize = 0;
-        for (0..render_data2.data.len / 4) |i| {
-            const r = render_data2.data[4 * i];
-            const g = render_data2.data[4 * i + 1];
-            const b = render_data2.data[4 * i + 2];
-            const a = render_data2.data[4 * i + 3];
-    
-            surface_info.bytes[4 * output_idx2] = b;
-            surface_info.bytes[4 * output_idx2 + 1] = g;
-            surface_info.bytes[4 * output_idx2 + 2] = r;
-            surface_info.bytes[4 * output_idx2 + 3] = a;
-
-            count2 += 1;
-            output_idx2 += 1;
-            if (count2 >= render_data2.width) {
-                count2 = 0;
-                output_idx2 += surface_info.width_pixels - render_data2.width;
-            }
-        }
-        var output_idx3: usize = (pos_x + pos_y * surface_info.width_pixels + (2 * 32 * surface_info.width_pixels));
-        var count3: usize = 0;
-        for (0..render_data3.data.len / 4) |i| {
-            const r = render_data3.data[4 * i];
-            const g = render_data3.data[4 * i + 1];
-            const b = render_data3.data[4 * i + 2];
-            const a = render_data3.data[4 * i + 3];
-    
-            surface_info.bytes[4 * output_idx3] = b;
-            surface_info.bytes[4 * output_idx3 + 1] = g;
-            surface_info.bytes[4 * output_idx3 + 2] = r;
-            surface_info.bytes[4 * output_idx3 + 3] = a;
-
-            count3 += 1;
-            output_idx3 += 1;
-            if (count3 >= render_data3.width) {
-                count3 = 0;
-                output_idx3 += surface_info.width_pixels - render_data3.width;
-            }
-        }
+        surface_info.draw(render_data1, pos_x, pos_y);
+        surface_info.draw(render_data2, pos_x + 64, pos_y);
+        surface_info.draw(render_data3, pos_x, pos_y + 64);
 
         // handle events
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
@@ -135,6 +78,32 @@ const Surface = struct {
     bytes: []u8,
     width_pixels: usize,
     height_pixels: usize,
+
+    const Self = @This();
+
+    fn draw(self: Self, render_info: RenderInfo, pos_x: usize, pos_y: usize) void {
+        var output_idx: usize = pos_x + pos_y * self.width_pixels;
+        var count: usize = 0;
+        for (0..render_info.data.len / 4) |i| {
+            const r = render_info.data[4 * i];
+            const g = render_info.data[4 * i + 1];
+            const b = render_info.data[4 * i + 2];
+            const a = render_info.data[4 * i + 3];
+    
+            self.bytes[4 * output_idx] = b;
+            self.bytes[4 * output_idx + 1] = g;
+            self.bytes[4 * output_idx + 2] = r;
+            self.bytes[4 * output_idx + 3] = a;
+
+            count += 1;
+            output_idx += 1;
+            if (count >= render_info.width) {
+                count = 0;
+                output_idx += self.width_pixels - render_info.width;
+            }
+        }
+
+    } 
 };
 
 fn getSurface(window: *c.SDL_Window) Surface {
@@ -210,3 +179,4 @@ const SpriteMap = struct {
         };
     }
 };
+
