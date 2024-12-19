@@ -7,9 +7,14 @@ const c = @cImport({
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
 
+// TODO - make the map much bigger, then render only what "fits on screen"
+// TODO - move player around and centre viewport on them
+// TODO - allow zooming in and out by scaling sprites
+// TODO - using sprite render info as stencil / mask instead of just drawing the entire square every time
+
 const map = [_][]const u32{
     &[_]u32{ 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-    &[_]u32{ 1, 0, 2, 0, 3, 0, 4, 0, 1 },
+    &[_]u32{ 1, 0, 1, 0, 1, 0, 1, 0, 1 },
     &[_]u32{ 1, 0, 1, 1, 0, 1, 1, 0, 1 },
     &[_]u32{ 1, 0, 0, 0, 0, 0, 0, 0, 1 },
     &[_]u32{ 1, 1, 0, 1, 1, 1, 0, 1, 1 },
@@ -47,30 +52,29 @@ pub fn main() !void {
     const animal_render_data = animals_sprite_map.get(0, 0);
     const item_render_data = items_sprite_map.get(0, 0);
     const monster_render_data = monsters_sprite_map.get(0, 0);
+    _ = animal_render_data;
+    _ = item_render_data;
+    _ = monster_render_data;
     const rogue_render_data = rogues_sprite_map.get(0, 0);
     const tile_render_data = tiles_sprite_map.get(0, 0);
 
     var surface_info = getSurface(window);
     var running = true;
     var event: c.SDL_Event = undefined;
-    var pos_x: usize = 0;
-    var pos_y: usize = 0;
+    var player_pos_x: usize = 0;
+    var player_pos_y: usize = 0;
     while (running) {
         // clear screen
         for (surface_info.bytes) |*p| {
             p.* = 122;
         }
 
-        // draw example images
+        // draw map
         for (map, 0..) |map_row, j| {
             for (map_row, 0..) |map_cell, i| {
                 const maybe_render_data = switch (map_cell) {
                     0 => null,
                     1 => tile_render_data,
-                    2 => rogue_render_data,
-                    3 => monster_render_data,
-                    4 => animal_render_data,
-                    5 => item_render_data,
                     else => return error.UnexpectedMapValue,
                 };
                 if (maybe_render_data) |render_data| {
@@ -81,6 +85,9 @@ pub fn main() !void {
             }
         }
 
+        // draw player
+        surface_info.draw(rogue_render_data, player_pos_x, player_pos_y);
+
         // handle events
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
             if (event.type == c.SDL_QUIT) {
@@ -89,10 +96,10 @@ pub fn main() !void {
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     c.SDLK_ESCAPE => running = false,
-                    c.SDLK_UP => pos_y -= 32,
-                    c.SDLK_DOWN => pos_y += 32,
-                    c.SDLK_LEFT => pos_x -= 32,
-                    c.SDLK_RIGHT => pos_x += 32,
+                    c.SDLK_UP => player_pos_y -= 32,
+                    c.SDLK_DOWN => player_pos_y += 32,
+                    c.SDLK_LEFT => player_pos_x -= 32,
+                    c.SDLK_RIGHT => player_pos_x += 32,
                     else => {},
                 }
             }
