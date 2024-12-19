@@ -6,7 +6,7 @@ pub fn build(b: *std.Build) !void {
 
     const main_exe = b.addExecutable(.{
         .name = "gobz",
-        .root_source_file = b.path("main.zig"),
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
     });
