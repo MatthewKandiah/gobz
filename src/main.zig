@@ -1,8 +1,9 @@
 const std = @import("std");
 const c = @cImport({
     @cInclude("SDL2/SDL.h");
-    @cInclude("stb_image.h");
 });
+const SpriteMap = @import("sprite_map.zig").SpriteMap;
+const Surface = @import("surface.zig").Surface;
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
@@ -11,17 +12,50 @@ const DEFAULT_HEIGHT = 800;
 // TODO - move player around and centre viewport on them
 // TODO - allow zooming in and out by scaling sprites
 // TODO - using sprite render info as stencil / mask instead of just drawing the entire square every time
+// TODO - get SDL surface pixel format and ensure we're writing our RGBA data to the surface in the format it's expecting
 
-const map = [_][]const u32{
-    &[_]u32{ 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-    &[_]u32{ 1, 0, 1, 0, 1, 0, 1, 0, 1 },
-    &[_]u32{ 1, 0, 1, 1, 0, 1, 1, 0, 1 },
-    &[_]u32{ 1, 0, 0, 0, 0, 0, 0, 0, 1 },
-    &[_]u32{ 1, 1, 0, 1, 1, 1, 0, 1, 1 },
-    &[_]u32{ 1, 1, 0, 1, 1, 1, 0, 1, 1 },
-    &[_]u32{ 1, 0, 0, 0, 0, 0, 0, 0, 1 },
-    &[_]u32{ 1, 0, 0, 0, 0, 0, 0, 0, 1 },
-    &[_]u32{ 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+pub const MapValue = enum {
+    Floor,
+    Wall,
+};
+
+pub const Map = struct {
+    data: []const MapValue,
+    width: usize,
+    height: usize,
+};
+
+const map_width = 9;
+const map_height = 9;
+const map_data = [_]MapValue{
+    .Wall, .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
+    .Wall, .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,
+    .Wall, .Floor, .Wall,  .Wall,  .Floor, .Wall,  .Wall,  .Floor, .Wall,
+    .Wall, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Wall,
+    .Wall, .Wall,  .Floor, .Wall,  .Wall,  .Wall,  .Floor, .Wall,  .Wall,
+    .Wall, .Wall,  .Floor, .Wall,  .Wall,  .Wall,  .Floor, .Wall,  .Wall,
+    .Wall, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Wall,
+    .Wall, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Wall,
+    .Wall, .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
+};
+
+// define the space on screen that the grid will actually be rendered in
+// may need to assert on its dimensions to ensure sensible centering?
+// will need to rethink drawing a lŧtle as well, do we want to create a render info for the whole grid out of the render info for each tile?
+// or do we give GameRenderArea a draw function and pass in the surface? So this struct can just draw itself onto the surface using its draw function
+// maybe that's a good pattern to follow? Game entities have a way to produce a render data, UI components have a function that takes a surface and draws themself at a position
+// TODO - resizing on window resize?
+const GameRenderArea = struct {
+    pos_x_pixels: usize,
+    pos_y_pixels: usize,
+    width_pixels: usize,
+    height_pixels: usize,
+};
+
+pub const GameState = struct {
+    player_pos_x: usize,
+    player_pos_y: usize,
+    // game_render_area: GameRenderArea,
 };
 
 pub fn main() !void {
@@ -61,8 +95,10 @@ pub fn main() !void {
     var surface_info = getSurface(window);
     var running = true;
     var event: c.SDL_Event = undefined;
-    var player_pos_x: usize = 0;
-    var player_pos_y: usize = 0;
+    var game_state = GameState {
+        .player_pos_x = 0,
+        .player_pos_y = 0,
+    };
     while (running) {
         // clear screen
         for (surface_info.bytes) |*p| {
@@ -70,12 +106,12 @@ pub fn main() !void {
         }
 
         // draw map
-        for (map, 0..) |map_row, j| {
-            for (map_row, 0..) |map_cell, i| {
+        for (0..map_height) |j| {
+            for (0..map_width) |i| {
+                const map_cell = map_data[i + map_width*j];
                 const maybe_render_data = switch (map_cell) {
-                    0 => null,
-                    1 => tile_render_data,
-                    else => return error.UnexpectedMapValue,
+                    .Floor => null,
+                    .Wall => tile_render_data,
                 };
                 if (maybe_render_data) |render_data| {
                     const x_idx = i * 32;
@@ -86,7 +122,7 @@ pub fn main() !void {
         }
 
         // draw player
-        surface_info.draw(rogue_render_data, player_pos_x, player_pos_y);
+        surface_info.draw(rogue_render_data, game_state.player_pos_x, game_state.player_pos_y);
 
         // handle events
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
@@ -96,10 +132,10 @@ pub fn main() !void {
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     c.SDLK_ESCAPE => running = false,
-                    c.SDLK_UP => player_pos_y -= 32,
-                    c.SDLK_DOWN => player_pos_y += 32,
-                    c.SDLK_LEFT => player_pos_x -= 32,
-                    c.SDLK_RIGHT => player_pos_x += 32,
+                    c.SDLK_UP => game_state.player_pos_y -= 32,
+                    c.SDLK_DOWN => game_state.player_pos_y += 32,
+                    c.SDLK_LEFT => game_state.player_pos_x -= 32,
+                    c.SDLK_RIGHT => game_state.player_pos_x += 32,
                     else => {},
                 }
             }
@@ -115,37 +151,6 @@ pub fn main() !void {
     }
 }
 
-const Surface = struct {
-    bytes: []u8,
-    width_pixels: usize,
-    height_pixels: usize,
-
-    const Self = @This();
-
-    fn draw(self: Self, render_info: RenderInfo, pos_x: usize, pos_y: usize) void {
-        var output_idx: usize = pos_x + pos_y * self.width_pixels;
-        var count: usize = 0;
-        for (0..render_info.data.len / 4) |i| {
-            const r = render_info.data[4 * i];
-            const g = render_info.data[4 * i + 1];
-            const b = render_info.data[4 * i + 2];
-            const a = render_info.data[4 * i + 3];
-
-            self.bytes[4 * output_idx] = b;
-            self.bytes[4 * output_idx + 1] = g;
-            self.bytes[4 * output_idx + 2] = r;
-            self.bytes[4 * output_idx + 3] = a;
-
-            count += 1;
-            output_idx += 1;
-            if (count >= render_info.width) {
-                count = 0;
-                output_idx += self.width_pixels - render_info.width;
-            }
-        }
-    }
-};
-
 fn getSurface(window: *c.SDL_Window) Surface {
     const surface: *c.SDL_Surface = c.SDL_GetWindowSurface(window) orelse std.debug.panic("No surface\n", .{});
     const width: usize = @intCast(surface.w);
@@ -155,67 +160,3 @@ fn getSurface(window: *c.SDL_Window) Surface {
     const bytes = pixels[0..pixels_count];
     return .{ .bytes = bytes, .width_pixels = width, .height_pixels = height };
 }
-
-const RenderInfo = struct {
-    width: usize,
-    data: []u8,
-};
-
-const SpriteMap = struct {
-    height_sprites: usize,
-    width_sprites: usize,
-    bytes_per_pixel: usize,
-    data: []u8,
-    sprite_width_pixels: usize,
-    sprite_height_pixels: usize,
-
-    const Self = @This();
-
-    fn load(allocator: std.mem.Allocator, path: []const u8, sprite_width_pixels: usize, sprite_height_pixels: usize) !Self {
-        var input_width: c_int = undefined;
-        var input_height: c_int = undefined;
-        var input_bytes_per_pixel: c_int = undefined;
-        var input_data: [*]u8 = undefined;
-        input_data = c.stbi_load(@ptrCast(path), &input_width, &input_height, &input_bytes_per_pixel, 0);
-        defer c.stbi_image_free(input_data);
-
-        std.debug.assert(input_bytes_per_pixel == 4);
-        const height_pixels: usize = @intCast(input_height);
-        const width_pixels: usize = @intCast(input_width);
-        const sprite_column_count = width_pixels / sprite_width_pixels;
-        const sprite_row_count = height_pixels / sprite_height_pixels;
-        const output_data = try allocator.alloc(u8, @intCast(input_width * input_height * 4));
-        var output_idx: usize = 0;
-        for (0..sprite_row_count) |sprite_row_idx| {
-            for (0..sprite_column_count) |sprite_col_idx| {
-                const sprite_data_top_left_idx = ((sprite_row_idx * sprite_height_pixels * width_pixels) + (sprite_col_idx * sprite_width_pixels)) * 4;
-                for (0..sprite_height_pixels) |j| {
-                    for (0..sprite_width_pixels * 4) |i| {
-                        const input_data_idx = sprite_data_top_left_idx + (j * width_pixels * 4) + i;
-                        output_data[output_idx] = input_data[input_data_idx];
-                        output_idx += 1;
-                    }
-                }
-            }
-        }
-        std.debug.assert(output_idx == input_width * input_height * input_bytes_per_pixel);
-
-        return SpriteMap{
-            .height_sprites = sprite_row_count,
-            .width_sprites = sprite_column_count,
-            .bytes_per_pixel = @intCast(input_bytes_per_pixel),
-            .data = output_data,
-            .sprite_width_pixels = sprite_width_pixels,
-            .sprite_height_pixels = sprite_height_pixels,
-        };
-    }
-
-    fn get(self: Self, x_idx: usize, y_idx: usize) RenderInfo {
-        const start_idx = 4 * ((x_idx * self.sprite_width_pixels) + (y_idx * self.sprite_height_pixels * self.width_sprites * self.sprite_width_pixels));
-        const byte_count = self.sprite_width_pixels * self.sprite_height_pixels * 4;
-        return RenderInfo{
-            .width = self.sprite_width_pixels,
-            .data = self.data[start_idx .. start_idx + byte_count],
-        };
-    }
-};
