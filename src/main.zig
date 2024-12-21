@@ -15,7 +15,7 @@ pub const Rect = struct {
     const Self = @This();
 
     pub fn contains(self: Self, pos: Pos) bool {
-        return (pos.x >= self.p.x and pos.x <= self.p.x + self.d.w) and (pos.y >= self.p.y and pos.y <= self.p.y + self.d.h);
+        return (pos.x >= self.p.x and pos.x < self.p.x + self.d.w) and (pos.y >= self.p.y and pos.y < self.p.y + self.d.h);
     }
 };
 
