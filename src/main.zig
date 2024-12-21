@@ -4,9 +4,25 @@ const c = @cImport({
 });
 const SpriteMap = @import("sprite_map.zig").SpriteMap;
 const Surface = @import("surface.zig").Surface;
+const RenderInfo = @import("render_info.zig").RenderInfo;
+
+pub const Dim = struct { w: usize, h: usize };
+pub const Pos = struct { x: usize, y: usize };
+pub const Rect = struct {
+    d: Dim,
+    p: Pos,
+
+    const Self = @This();
+
+    pub fn contains(self: Self, pos: Pos) bool {
+        return (pos.x >= self.p.x and pos.x < self.p.x + self.d.w) and (pos.y >= self.p.y and pos.y < self.p.y + self.d.h);
+    }
+};
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
+const SPRITE_WIDTH = 32;
+const SPRITE_HEIGHT = 32;
 
 // TODO - make the map much bigger, then render only what "fits on screen"
 // TODO - move player around and centre viewport on them
@@ -15,18 +31,26 @@ const DEFAULT_HEIGHT = 800;
 // TODO - get SDL surface pixel format and ensure we're writing our RGBA data to the surface in the format it's expecting
 
 pub const MapValue = enum {
+    Clear,
     Floor,
     Wall,
 };
 
 pub const Map = struct {
     data: []const MapValue,
-    width: usize,
     height: usize,
+    width: usize,
+
+    const Self = @This();
+
+    pub fn get(self: Self, x: usize, y: usize) ?MapValue {
+        if (x >= self.width or y >= self.height) {
+            return null;
+        }
+        return self.data[y * self.width + x];
+    }
 };
 
-const map_width = 9;
-const map_height = 9;
 const map_data = [_]MapValue{
     .Wall, .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
     .Wall, .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,
@@ -39,23 +63,15 @@ const map_data = [_]MapValue{
     .Wall, .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
 };
 
-// define the space on screen that the grid will actually be rendered in
-// may need to assert on its dimensions to ensure sensible centering?
-// will need to rethink drawing a lŧtle as well, do we want to create a render info for the whole grid out of the render info for each tile?
-// or do we give GameRenderArea a draw function and pass in the surface? So this struct can just draw itself onto the surface using its draw function
-// maybe that's a good pattern to follow? Game entities have a way to produce a render data, UI components have a function that takes a surface and draws themself at a position
-// TODO - resizing on window resize?
-const GameRenderArea = struct {
-    pos_x_pixels: usize,
-    pos_y_pixels: usize,
-    width_pixels: usize,
-    height_pixels: usize,
+const map = Map{
+    .data = &map_data,
+    .width = 9,
+    .height = 9,
 };
 
 pub const GameState = struct {
     player_pos_x: usize,
     player_pos_y: usize,
-    // game_render_area: GameRenderArea,
 };
 
 pub fn main() !void {
@@ -63,11 +79,11 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     // assets from https://sethbb.itch.io/32rogues
-    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", 32, 32);
-    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", 32, 32);
-    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", 32, 32);
-    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", 32, 32);
-    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", 32, 32);
+    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", SPRITE_WIDTH, SPRITE_HEIGHT);
+    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", SPRITE_WIDTH, SPRITE_HEIGHT);
+    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", SPRITE_WIDTH, SPRITE_HEIGHT);
+    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", SPRITE_WIDTH, SPRITE_HEIGHT);
+    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", SPRITE_WIDTH, SPRITE_HEIGHT);
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
@@ -90,15 +106,17 @@ pub fn main() !void {
     _ = item_render_data;
     _ = monster_render_data;
     const rogue_render_data = rogues_sprite_map.get(0, 0);
-    const tile_render_data = tiles_sprite_map.get(0, 0);
+    const wall_tile_render_data = tiles_sprite_map.get(0, 0);
+    const floor_tile_render_data = tiles_sprite_map.get(0, 1);
 
     var surface_info = getSurface(window);
     var running = true;
     var event: c.SDL_Event = undefined;
-    var game_state = GameState {
+    var game_state = GameState{
         .player_pos_x = 0,
         .player_pos_y = 0,
     };
+
     while (running) {
         // clear screen
         for (surface_info.bytes) |*p| {
@@ -106,23 +124,31 @@ pub fn main() !void {
         }
 
         // draw map
-        for (0..map_height) |j| {
-            for (0..map_width) |i| {
-                const map_cell = map_data[i + map_width*j];
+        const map_pos = .{ .x = 5, .y = 5 };
+        const clipping_rect = Rect{ .d = .{ .w = 1000, .h = 2000 }, .p = .{ .x = 10, .y = 20 } };
+        for (0..map.height) |j| {
+            for (0..map.width) |i| {
+                const map_cell = map.get(i, j) orelse .Clear;
                 const maybe_render_data = switch (map_cell) {
-                    .Floor => null,
-                    .Wall => tile_render_data,
+                    .Clear => null,
+                    .Floor => floor_tile_render_data,
+                    .Wall => wall_tile_render_data,
                 };
                 if (maybe_render_data) |render_data| {
-                    const x_idx = i * 32;
-                    const y_idx = j * 32;
-                    surface_info.draw(render_data, x_idx, y_idx);
+                    const x_idx = map_pos.x + i * SPRITE_WIDTH;
+                    const y_idx = map_pos.y + j * SPRITE_HEIGHT;
+                    surface_info.drawWithClipping(render_data, x_idx, y_idx, clipping_rect);
                 }
             }
         }
 
         // draw player
-        surface_info.draw(rogue_render_data, game_state.player_pos_x, game_state.player_pos_y);
+        surface_info.drawWithClipping(
+            rogue_render_data,
+            map_pos.x + game_state.player_pos_x * SPRITE_WIDTH,
+            map_pos.y + game_state.player_pos_y * SPRITE_HEIGHT,
+            clipping_rect,
+        );
 
         // handle events
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
@@ -132,10 +158,10 @@ pub fn main() !void {
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     c.SDLK_ESCAPE => running = false,
-                    c.SDLK_UP => game_state.player_pos_y -= 32,
-                    c.SDLK_DOWN => game_state.player_pos_y += 32,
-                    c.SDLK_LEFT => game_state.player_pos_x -= 32,
-                    c.SDLK_RIGHT => game_state.player_pos_x += 32,
+                    c.SDLK_UP => game_state.player_pos_y -= 1,
+                    c.SDLK_DOWN => game_state.player_pos_y += 1,
+                    c.SDLK_LEFT => game_state.player_pos_x -= 1,
+                    c.SDLK_RIGHT => game_state.player_pos_x += 1,
                     else => {},
                 }
             }
