@@ -113,8 +113,8 @@ pub fn main() !void {
     var running = true;
     var event: c.SDL_Event = undefined;
     var game_state = GameState{
-        .player_pos_x = 0,
-        .player_pos_y = 0,
+        .player_pos_x = 1,
+        .player_pos_y = 1,
     };
 
     while (running) {
@@ -123,6 +123,7 @@ pub fn main() !void {
             p.* = 122;
         }
 
+        // TODO - move map and keep player sprite centred
         // draw map
         const map_pos = .{ .x = 16, .y = 48 };
         const clipping_rect = Rect{ .d = .{ .w = 3 * SPRITE_WIDTH, .h = 3 * SPRITE_HEIGHT }, .p = map_pos };
