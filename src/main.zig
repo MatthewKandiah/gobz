@@ -158,9 +158,17 @@ pub fn main() !void {
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     c.SDLK_ESCAPE => running = false,
-                    c.SDLK_UP => game_state.player_pos_y -= 1,
+                    c.SDLK_UP => {
+                        if (game_state.player_pos_y > 0) {
+                            game_state.player_pos_y -= 1;
+                        }
+                    },
                     c.SDLK_DOWN => game_state.player_pos_y += 1,
-                    c.SDLK_LEFT => game_state.player_pos_x -= 1,
+                    c.SDLK_LEFT => {
+                        if (game_state.player_pos_x > 0) {
+                            game_state.player_pos_x -= 1;
+                        }
+                    },
                     c.SDLK_RIGHT => game_state.player_pos_x += 1,
                     else => {},
                 }
