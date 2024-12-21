@@ -15,7 +15,7 @@ pub const Rect = struct {
     const Self = @This();
 
     pub fn contains(self: Self, pos: Pos) bool {
-        return (pos.x >= self.p.x and pos.x < self.p.x + self.d.w) and (pos.y >= self.p.y and pos.y < self.p.y + self.d.h);
+        return (pos.x >= self.p.x and pos.x <= self.p.x + self.d.w) and (pos.y >= self.p.y and pos.y <= self.p.y + self.d.h);
     }
 };
 
@@ -124,8 +124,8 @@ pub fn main() !void {
         }
 
         // draw map
-        const map_pos = .{ .x = 5, .y = 5 };
-        const clipping_rect = Rect{ .d = .{ .w = 1000, .h = 2000 }, .p = .{ .x = 10, .y = 20 } };
+        const map_pos = .{ .x = 16, .y = 48 };
+        const clipping_rect = Rect{ .d = .{ .w = 3 * SPRITE_WIDTH, .h = 3 * SPRITE_HEIGHT }, .p = map_pos };
         for (0..map.height) |j| {
             for (0..map.width) |i| {
                 const map_cell = map.get(i, j) orelse .Clear;
