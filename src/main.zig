@@ -72,6 +72,7 @@ const map = Map{
 pub const GameState = struct {
     player_pos_x: usize,
     player_pos_y: usize,
+    map: Map,
 };
 
 pub fn main() !void {
@@ -115,6 +116,7 @@ pub fn main() !void {
     var game_state = GameState{
         .player_pos_x = 1,
         .player_pos_y = 1,
+        .map = map,
     };
 
     while (running) {
@@ -126,7 +128,7 @@ pub fn main() !void {
         // TODO - move map and keep player sprite centred
         // draw map
         const map_pos = .{ .x = 16, .y = 48 };
-        const clipping_rect = Rect{ .d = .{ .w = 3 * SPRITE_WIDTH, .h = 3 * SPRITE_HEIGHT }, .p = map_pos };
+        const clipping_rect = Rect{ .d = .{ .w = 3.5 * SPRITE_WIDTH, .h = 3.5 * SPRITE_HEIGHT }, .p = map_pos };
         for (0..map.height) |j| {
             for (0..map.width) |i| {
                 const map_cell = map.get(i, j) orelse .Clear;
@@ -159,18 +161,10 @@ pub fn main() !void {
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     c.SDLK_ESCAPE => running = false,
-                    c.SDLK_UP => {
-                        if (game_state.player_pos_y > 0) {
-                            game_state.player_pos_y -= 1;
-                        }
-                    },
-                    c.SDLK_DOWN => game_state.player_pos_y += 1,
-                    c.SDLK_LEFT => {
-                        if (game_state.player_pos_x > 0) {
-                            game_state.player_pos_x -= 1;
-                        }
-                    },
-                    c.SDLK_RIGHT => game_state.player_pos_x += 1,
+                    c.SDLK_UP => handleMove(&game_state, 0, -1),
+                    c.SDLK_DOWN => handleMove(&game_state, 0, 1),
+                    c.SDLK_LEFT => handleMove(&game_state, -1, 0),
+                    c.SDLK_RIGHT => handleMove(&game_state, 1, 0),
                     else => {},
                 }
             }
@@ -183,6 +177,21 @@ pub fn main() !void {
         if (c.SDL_UpdateWindowSurface(window) < 0) {
             @panic("Couldn't update window surface");
         }
+    }
+}
+
+fn handleMove(game_state: *GameState, dx: i32, dy: i32) void {
+    var new_player_x: usize = game_state.player_pos_x;
+    var new_player_y: usize = game_state.player_pos_y;
+    if (@as(i32, @intCast(game_state.player_pos_x)) + dx >= 0) {
+        new_player_x = @intCast(@as(i32, @intCast(game_state.player_pos_x)) + dx);
+    }
+    if (@as(i32, @intCast(game_state.player_pos_y)) + dy >= 0) {
+        new_player_y = @intCast(@as(i32, @intCast(game_state.player_pos_y)) + dy);
+    }
+    if (game_state.map.get(new_player_x, new_player_y) != .Wall) {
+        game_state.*.player_pos_x = new_player_x;
+        game_state.*.player_pos_y = new_player_y;
     }
 }
 
