@@ -52,8 +52,8 @@ pub const Map = struct {
 };
 
 const map_data = [_]MapValue{
-    .Wall, .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
-    .Wall, .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,
+    .Wall, .Floor,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
+    .Floor, .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,
     .Wall, .Floor, .Wall,  .Wall,  .Floor, .Wall,  .Wall,  .Floor, .Wall,
     .Wall, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Wall,
     .Wall, .Wall,  .Floor, .Wall,  .Wall,  .Wall,  .Floor, .Wall,  .Wall,
@@ -114,8 +114,8 @@ pub fn main() !void {
     var running = true;
     var event: c.SDL_Event = undefined;
     var game_state = GameState{
-        .player_pos_x = 1,
-        .player_pos_y = 1,
+        .player_pos_x = 0,
+        .player_pos_y = 0,
         .map = map,
     };
 
@@ -126,9 +126,15 @@ pub fn main() !void {
         }
 
         // TODO - move map and keep player sprite centred
+        //      -> draw player sprite in the centre of the clipping rect
+        //      -> displae the map in the opposite direction to how we have been displacing the player sprite to show movement
         // draw map
         const map_pos = .{ .x = 16, .y = 48 };
         const clipping_rect = Rect{ .d = .{ .w = 3.5 * SPRITE_WIDTH, .h = 3.5 * SPRITE_HEIGHT }, .p = map_pos };
+        const player_sprite_pos = .{
+            .x = map_pos.x + clipping_rect.d.w / 2 - SPRITE_WIDTH / 2,
+            .y = map_pos.y + clipping_rect.d.h / 2 - SPRITE_HEIGHT / 2,
+        };
         for (0..map.height) |j| {
             for (0..map.width) |i| {
                 const map_cell = map.get(i, j) orelse .Clear;
@@ -138,9 +144,11 @@ pub fn main() !void {
                     .Wall => wall_tile_render_data,
                 };
                 if (maybe_render_data) |render_data| {
-                    const x_idx = map_pos.x + i * SPRITE_WIDTH;
-                    const y_idx = map_pos.y + j * SPRITE_HEIGHT;
-                    surface_info.drawWithClipping(render_data, x_idx, y_idx, clipping_rect);
+                    if (i >= game_state.player_pos_x and j >= game_state.player_pos_y) {
+                        const x_idx = player_sprite_pos.x + (i - game_state.player_pos_x) * SPRITE_WIDTH;
+                        const y_idx = player_sprite_pos.y + (j - game_state.player_pos_y) * SPRITE_HEIGHT;
+                        surface_info.drawWithClipping(render_data, x_idx, y_idx, clipping_rect);
+                    }
                 }
             }
         }
@@ -148,8 +156,8 @@ pub fn main() !void {
         // draw player
         surface_info.drawWithClipping(
             rogue_render_data,
-            map_pos.x + game_state.player_pos_x * SPRITE_WIDTH,
-            map_pos.y + game_state.player_pos_y * SPRITE_HEIGHT,
+            player_sprite_pos.x,
+            player_sprite_pos.y,
             clipping_rect,
         );
 
