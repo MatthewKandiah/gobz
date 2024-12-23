@@ -1,3 +1,4 @@
+const std = @import("std");
 const RenderInfo = @import("render_info.zig").RenderInfo;
 const main = @import("main.zig");
 const Pos = main.Pos;
