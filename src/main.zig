@@ -8,6 +8,7 @@ const RenderInfo = @import("render_info.zig").RenderInfo;
 
 pub const Dim = struct { width: usize, height: usize };
 pub const Pos = struct { x: usize, y: usize };
+pub const Disp = struct { dx: i32, dy: i32 };
 pub const Rect = struct {
     dim: Dim,
     pos: Pos,
@@ -50,9 +51,27 @@ pub const Map = struct {
 };
 
 pub const GameState = struct {
-    player_pos_x: usize,
-    player_pos_y: usize,
+    player_pos: Pos,
     map: Map,
+
+    const Self = @This();
+
+    fn handleMove(self: *Self, disp: Disp) void {
+        var new_player_x: usize = self.player_pos.x;
+        var new_player_y: usize = self.player_pos.y;
+        const shifted_x = @as(i32, @intCast(self.player_pos.x)) + disp.dx;
+        const shifted_y = @as(i32, @intCast(self.player_pos.y)) + disp.dy;
+        if (shifted_x >= 0 and shifted_x < self.map.width) {
+            new_player_x = @intCast(shifted_x);
+        }
+        if (shifted_y >= 0 and shifted_y < self.map.height) {
+            new_player_y = @intCast(shifted_y);
+        }
+        if (self.map.get(new_player_x, new_player_y) != .Wall) {
+            self.*.player_pos.x = new_player_x;
+            self.*.player_pos.y = new_player_y;
+        }
+    }
 };
 
 pub fn main() !void {
@@ -111,8 +130,7 @@ pub fn main() !void {
     var running = true;
     var event: c.SDL_Event = undefined;
     var game_state = GameState{
-        .player_pos_x = 0,
-        .player_pos_y = 0,
+        .player_pos = Pos{ .x = 0, .y = 0 },
         .map = map,
     };
 
@@ -141,12 +159,12 @@ pub fn main() !void {
                 };
                 if (maybe_render_data) |render_data| {
                     const ax = player_sprite_pos.x + i * SPRITE_WIDTH;
-                    const bx = game_state.player_pos_x * SPRITE_WIDTH;
+                    const bx = game_state.player_pos.x * SPRITE_WIDTH;
                     const ay = player_sprite_pos.y + j * SPRITE_HEIGHT;
-                    const by = game_state.player_pos_y * SPRITE_HEIGHT;
+                    const by = game_state.player_pos.y * SPRITE_HEIGHT;
                     if (ax >= bx and ay >= by) {
-                        const x_idx = player_sprite_pos.x + i * SPRITE_WIDTH - game_state.player_pos_x * SPRITE_WIDTH;
-                        const y_idx = player_sprite_pos.y + j * SPRITE_HEIGHT - game_state.player_pos_y * SPRITE_HEIGHT;
+                        const x_idx = player_sprite_pos.x + i * SPRITE_WIDTH - game_state.player_pos.x * SPRITE_WIDTH;
+                        const y_idx = player_sprite_pos.y + j * SPRITE_HEIGHT - game_state.player_pos.y * SPRITE_HEIGHT;
                         if (x_idx + SPRITE_WIDTH < surface_info.width_pixels and y_idx + SPRITE_HEIGHT < surface_info.height_pixels) {
                             surface_info.drawWithClipping(render_data, x_idx, y_idx, clipping_rect);
                         }
@@ -171,10 +189,10 @@ pub fn main() !void {
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
                     c.SDLK_ESCAPE => running = false,
-                    c.SDLK_UP => handleMove(&game_state, 0, -1),
-                    c.SDLK_DOWN => handleMove(&game_state, 0, 1),
-                    c.SDLK_LEFT => handleMove(&game_state, -1, 0),
-                    c.SDLK_RIGHT => handleMove(&game_state, 1, 0),
+                    c.SDLK_UP => game_state.handleMove(Disp{ .dx = 0, .dy = -1 }),
+                    c.SDLK_DOWN => game_state.handleMove(Disp{ .dx = 0, .dy = 1 }),
+                    c.SDLK_LEFT => game_state.handleMove(Disp{ .dx = -1, .dy = 0 }),
+                    c.SDLK_RIGHT => game_state.handleMove(Disp{ .dx = 1, .dy = 0 }),
                     else => {},
                 }
             }
@@ -187,24 +205,6 @@ pub fn main() !void {
         if (c.SDL_UpdateWindowSurface(window) < 0) {
             @panic("Couldn't update window surface");
         }
-    }
-}
-
-// TODO - move to GameState
-fn handleMove(game_state: *GameState, dx: i32, dy: i32) void {
-    var new_player_x: usize = game_state.player_pos_x;
-    var new_player_y: usize = game_state.player_pos_y;
-    const shifted_x = @as(i32, @intCast(game_state.player_pos_x)) + dx;
-    const shifted_y = @as(i32, @intCast(game_state.player_pos_y)) + dy;
-    if (shifted_x >= 0 and shifted_x < game_state.map.width) {
-        new_player_x = @intCast(shifted_x);
-    }
-    if (shifted_y >= 0 and shifted_y < game_state.map.height) {
-        new_player_y = @intCast(shifted_y);
-    }
-    if (game_state.map.get(new_player_x, new_player_y) != .Wall) {
-        game_state.*.player_pos_x = new_player_x;
-        game_state.*.player_pos_y = new_player_y;
     }
 }
 
