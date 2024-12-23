@@ -51,15 +51,6 @@ pub const Map = struct {
     }
 };
 
-const map_width = 200;
-const map_height = 200;
-var map_data = [_]MapValue{.Floor} ** (map_width * map_height);
-const map = Map{
-    .data = &map_data,
-    .width = map_width,
-    .height = map_height,
-};
-
 pub const GameState = struct {
     player_pos_x: usize,
     player_pos_y: usize,
@@ -69,6 +60,23 @@ pub const GameState = struct {
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
+
+    // setup map
+    const map_width = 200;
+    const map_height = 200;
+    var map_data: [map_width * map_height]MapValue = undefined;
+    for (&map_data, 0..) |*m, i| {
+        if (i % 10 == 0) {
+            m.* = .Wall;
+        } else {
+            m.* = .Floor;
+        }
+    }
+    const map = Map{
+        .data = &map_data,
+        .width = map_width,
+        .height = map_height,
+    };
 
     // assets from https://sethbb.itch.io/32rogues
     const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", SPRITE_WIDTH, SPRITE_HEIGHT);
