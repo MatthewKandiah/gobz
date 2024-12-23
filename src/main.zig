@@ -6,16 +6,16 @@ const SpriteMap = @import("sprite_map.zig").SpriteMap;
 const Surface = @import("surface.zig").Surface;
 const RenderInfo = @import("render_info.zig").RenderInfo;
 
-pub const Dim = struct { w: usize, h: usize };
+pub const Dim = struct { width: usize, height: usize };
 pub const Pos = struct { x: usize, y: usize };
 pub const Rect = struct {
-    d: Dim,
-    p: Pos,
+    dim: Dim,
+    pos: Pos,
 
     const Self = @This();
 
     pub fn contains(self: Self, pos: Pos) bool {
-        return (pos.x >= self.p.x and pos.x < self.p.x + self.d.w) and (pos.y >= self.p.y and pos.y < self.p.y + self.d.h);
+        return (pos.x >= self.pos.x and pos.x < self.pos.x + self.dim.width) and (pos.y >= self.pos.y and pos.y < self.pos.y + self.dim.height);
     }
 };
 
@@ -123,11 +123,13 @@ pub fn main() !void {
         }
 
         // draw map
-        const map_pos = .{ .x = 16, .y = 16 };
-        const clipping_rect = Rect{ .d = .{ .w = surface_info.width_pixels * 4 / 5, .h = surface_info.height_pixels }, .p = map_pos };
+        const clipping_rect = Rect{
+            .dim = Dim{ .width = surface_info.width_pixels * 4 / 5, .height = surface_info.height_pixels },
+            .pos = Pos{ .x = 16, .y = 16 },
+        };
         const player_sprite_pos = .{
-            .x = map_pos.x + clipping_rect.d.w / 2 - SPRITE_WIDTH / 2,
-            .y = map_pos.y + clipping_rect.d.h / 2 - SPRITE_HEIGHT / 2,
+            .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - SPRITE_WIDTH / 2,
+            .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - SPRITE_HEIGHT / 2,
         };
         for (0..map.height) |j| {
             for (0..map.width) |i| {
