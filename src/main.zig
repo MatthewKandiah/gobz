@@ -24,8 +24,6 @@ const DEFAULT_HEIGHT = 800;
 const SPRITE_WIDTH = 32;
 const SPRITE_HEIGHT = 32;
 
-// TODO - make the map much bigger, then render only what "fits on screen"
-// TODO - move player around and centre viewport on them
 // TODO - allow zooming in and out by scaling sprites
 // TODO - using sprite render info as stencil / mask instead of just drawing the entire square every time
 // TODO - get SDL surface pixel format and ensure we're writing our RGBA data to the surface in the format it's expecting
