@@ -51,22 +51,13 @@ pub const Map = struct {
     }
 };
 
-const map_data = [_]MapValue{
-    .Wall,  .Floor, .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
-    .Floor, .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,  .Floor, .Wall,
-    .Wall,  .Floor, .Wall,  .Wall,  .Floor, .Wall,  .Wall,  .Floor, .Wall,
-    .Wall,  .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Wall,
-    .Wall,  .Wall,  .Floor, .Wall,  .Wall,  .Wall,  .Floor, .Wall,  .Wall,
-    .Wall,  .Wall,  .Floor, .Wall,  .Wall,  .Wall,  .Floor, .Wall,  .Wall,
-    .Wall,  .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Wall,
-    .Wall,  .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Floor, .Wall,
-    .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,  .Wall,
-};
-
+const map_width = 200;
+const map_height = 200;
+var map_data = [_]MapValue{.Floor} ** (map_width * map_height);
 const map = Map{
     .data = &map_data,
-    .width = 9,
-    .height = 9,
+    .width = map_width,
+    .height = map_height,
 };
 
 pub const GameState = struct {
@@ -125,17 +116,16 @@ pub fn main() !void {
             p.* = 122;
         }
 
-        // TODO - move map and keep player sprite centred
         // draw map
         const map_pos = .{ .x = 16, .y = 16 };
-        const clipping_rect = Rect{ .d = .{ .w = surface_info.width_pixels * 4 / 5, .h = surface_info.height_pixels}, .p = map_pos };
+        const clipping_rect = Rect{ .d = .{ .w = surface_info.width_pixels * 4 / 5, .h = surface_info.height_pixels }, .p = map_pos };
         const player_sprite_pos = .{
             .x = map_pos.x + clipping_rect.d.w / 2 - SPRITE_WIDTH / 2,
             .y = map_pos.y + clipping_rect.d.h / 2 - SPRITE_HEIGHT / 2,
         };
         for (0..map.height) |j| {
             for (0..map.width) |i| {
-                const map_cell = map.get(i, j) orelse .Clear;
+                const map_cell = map.get(i, j) orelse @panic("should never happen");
                 const maybe_render_data = switch (map_cell) {
                     .Clear => null,
                     .Floor => floor_tile_render_data,
@@ -149,7 +139,9 @@ pub fn main() !void {
                     if (ax >= bx and ay >= by) {
                         const x_idx = player_sprite_pos.x + i * SPRITE_WIDTH - game_state.player_pos_x * SPRITE_WIDTH;
                         const y_idx = player_sprite_pos.y + j * SPRITE_HEIGHT - game_state.player_pos_y * SPRITE_HEIGHT;
-                        surface_info.drawWithClipping(render_data, x_idx, y_idx, clipping_rect);
+                        if (x_idx + SPRITE_WIDTH < surface_info.width_pixels and y_idx + SPRITE_HEIGHT < surface_info.height_pixels) {
+                            surface_info.drawWithClipping(render_data, x_idx, y_idx, clipping_rect);
+                        }
                     }
                 }
             }
