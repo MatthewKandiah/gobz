@@ -12,10 +12,10 @@ pub const Surface = struct {
 
     const Self = @This();
 
-    pub fn draw(self: Self, render_info: RenderInfo, pos_x: usize, pos_y: usize, clipping_rect: Rect) void {
-        var output_idx: usize = pos_x + pos_y * self.width_pixels;
+    pub fn draw(self: Self, render_info: RenderInfo, pos: Pos, clipping_rect: Rect) void {
+        var output_idx: usize = pos.x + pos.y * self.width_pixels;
         var count: usize = 0;
-        var current_pos = Pos{ .x = pos_x, .y = pos_y };
+        var current_pos = Pos{ .x = pos.x, .y = pos.y };
         for (0..render_info.data.len / 4) |i| {
             if (clipping_rect.contains(current_pos)) {
                 const r = render_info.data[4 * i];
@@ -34,7 +34,7 @@ pub const Surface = struct {
             if (count >= render_info.width) {
                 count = 0;
                 output_idx += self.width_pixels - render_info.width;
-                current_pos.x = pos_x;
+                current_pos.x = pos.x;
                 current_pos.y += 1;
             }
         }

@@ -128,7 +128,7 @@ pub fn main() !void {
                         const x_idx = player_sprite_pos.x + i * SPRITE_WIDTH - game_state.player_pos.x * SPRITE_WIDTH;
                         const y_idx = player_sprite_pos.y + j * SPRITE_HEIGHT - game_state.player_pos.y * SPRITE_HEIGHT;
                         if (x_idx + SPRITE_WIDTH < surface_info.width_pixels and y_idx + SPRITE_HEIGHT < surface_info.height_pixels) {
-                            surface_info.draw(render_data, x_idx, y_idx, clipping_rect);
+                            surface_info.draw(render_data, .{ .x = x_idx, .y = y_idx }, clipping_rect);
                         }
                     }
                 }
@@ -138,8 +138,7 @@ pub fn main() !void {
         // draw player
         surface_info.draw(
             rogue_render_data,
-            player_sprite_pos.x,
-            player_sprite_pos.y,
+            .{ .x = player_sprite_pos.x, .y = player_sprite_pos.y },
             clipping_rect,
         );
 
