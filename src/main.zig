@@ -5,6 +5,9 @@ const c = @cImport({
 const SpriteMap = @import("sprite_map.zig").SpriteMap;
 const Surface = @import("surface.zig").Surface;
 const RenderInfo = @import("render_info.zig").RenderInfo;
+const Map = @import("map.zig").Map;
+const MapValue = @import("map.zig").MapValue;
+const GameState = @import("game_state.zig").GameState;
 
 pub const Dim = struct { width: usize, height: usize };
 pub const Pos = struct { x: usize, y: usize };
@@ -28,51 +31,6 @@ const SPRITE_HEIGHT = 32;
 // TODO - allow zooming in and out by scaling sprites
 // TODO - using sprite render info as stencil / mask instead of just drawing the entire square every time
 // TODO - get SDL surface pixel format and ensure we're writing our RGBA data to the surface in the format it's expecting
-
-pub const MapValue = enum {
-    Clear,
-    Floor,
-    Wall,
-};
-
-pub const Map = struct {
-    data: []const MapValue,
-    height: usize,
-    width: usize,
-
-    const Self = @This();
-
-    pub fn get(self: Self, x: usize, y: usize) ?MapValue {
-        if (x >= self.width or y >= self.height) {
-            return null;
-        }
-        return self.data[y * self.width + x];
-    }
-};
-
-pub const GameState = struct {
-    player_pos: Pos,
-    map: Map,
-
-    const Self = @This();
-
-    fn handleMove(self: *Self, disp: Disp) void {
-        var new_player_x: usize = self.player_pos.x;
-        var new_player_y: usize = self.player_pos.y;
-        const shifted_x = @as(i32, @intCast(self.player_pos.x)) + disp.dx;
-        const shifted_y = @as(i32, @intCast(self.player_pos.y)) + disp.dy;
-        if (shifted_x >= 0 and shifted_x < self.map.width) {
-            new_player_x = @intCast(shifted_x);
-        }
-        if (shifted_y >= 0 and shifted_y < self.map.height) {
-            new_player_y = @intCast(shifted_y);
-        }
-        if (self.map.get(new_player_x, new_player_y) != .Wall) {
-            self.*.player_pos.x = new_player_x;
-            self.*.player_pos.y = new_player_y;
-        }
-    }
-};
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -141,9 +99,13 @@ pub fn main() !void {
         }
 
         // draw map
+        // const clipping_rect = Rect{
+        //     .dim = Dim{ .width = surface_info.width_pixels * 4 / 5, .height = surface_info.height_pixels },
+        //     .pos = Pos{ .x = 16, .y = 16 },
+        // };
         const clipping_rect = Rect{
-            .dim = Dim{ .width = surface_info.width_pixels * 4 / 5, .height = surface_info.height_pixels },
-            .pos = Pos{ .x = 16, .y = 16 },
+            .dim = Dim{ .width = surface_info.width_pixels, .height = surface_info.height_pixels },
+            .pos = Pos{ .x = 0, .y = 0 },
         };
         const player_sprite_pos = .{
             .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - SPRITE_WIDTH / 2,
