@@ -182,14 +182,17 @@ pub fn main() !void {
     }
 }
 
+// TODO - move to GameState
 fn handleMove(game_state: *GameState, dx: i32, dy: i32) void {
     var new_player_x: usize = game_state.player_pos_x;
     var new_player_y: usize = game_state.player_pos_y;
-    if (@as(i32, @intCast(game_state.player_pos_x)) + dx >= 0) {
-        new_player_x = @intCast(@as(i32, @intCast(game_state.player_pos_x)) + dx);
+    const shifted_x = @as(i32, @intCast(game_state.player_pos_x)) + dx;
+    const shifted_y = @as(i32, @intCast(game_state.player_pos_y)) + dy;
+    if (shifted_x >= 0 and shifted_x < game_state.map.width) {
+        new_player_x = @intCast(shifted_x);
     }
-    if (@as(i32, @intCast(game_state.player_pos_y)) + dy >= 0) {
-        new_player_y = @intCast(@as(i32, @intCast(game_state.player_pos_y)) + dy);
+    if (shifted_y >= 0 and shifted_y < game_state.map.height) {
+        new_player_y = @intCast(shifted_y);
     }
     if (game_state.map.get(new_player_x, new_player_y) != .Wall) {
         game_state.*.player_pos_x = new_player_x;
