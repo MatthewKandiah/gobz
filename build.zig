@@ -12,8 +12,15 @@ pub fn build(b: *std.Build) !void {
     });
     main_exe.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "deps/include" } });
     main_exe.addCSourceFile(.{ .file = .{ .src_path = .{ .owner = b, .sub_path = "deps/src/stb_image_impl.c" } } });
-    main_exe.addCSourceFile(.{ .file = .{ .src_path = .{ .owner = b, .sub_path = "deps/src/stb_image_write_impl.c" } } });
     main_exe.linkSystemLibrary("SDL2");
     main_exe.linkLibC();
     b.installArtifact(main_exe);
+
+    const tests_exe = b.addTest(.{ .root_source_file = b.path("src/main.zig") });
+    tests_exe.addIncludePath(.{ .src_path = .{ .owner = b, .sub_path = "deps/include" } });
+    tests_exe.addCSourceFile(.{ .file = .{ .src_path = .{ .owner = b, .sub_path = "deps/src/stb_image_impl.c" } } });
+    tests_exe.addCSourceFile(.{ .file = .{ .src_path = .{ .owner = b, .sub_path = "deps/src/stb_image_write_impl.c" } } });
+    tests_exe.linkSystemLibrary("SDL2");
+    tests_exe.linkLibC();
+    b.installArtifact(tests_exe);
 }

@@ -178,3 +178,9 @@ fn getSurface(window: *c.SDL_Window) Surface {
     const bytes = pixels[0..pixels_count];
     return .{ .bytes = bytes, .width_pixels = width, .height_pixels = height };
 }
+
+test {
+    _ = @import("tests/drawing.zig");
+    std.testing.refAllDecls(@This());
+}
+

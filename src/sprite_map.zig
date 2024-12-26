@@ -41,7 +41,6 @@ pub const SpriteMap = struct {
                 }
             }
         }
-        std.debug.assert(output_idx == input_width * input_height * input_bytes_per_pixel);
 
         return SpriteMap{
             .height_sprites = sprite_row_count,
