@@ -6,9 +6,9 @@ const RenderInfo = @import("render_info.zig").RenderInfo;
 const Dim = @import("main.zig").Dim;
 
 pub const SpriteMap = struct {
-    dim_sprites: Dim,
-    bytes_per_pixel: usize,
     data: []u8,
+    bytes_per_pixel: usize,
+    dim_sprites: Dim,
     sprite_dim_pixels: Dim,
 
     const Self = @This();
