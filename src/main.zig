@@ -27,15 +27,14 @@ const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
 const INPUT_SPRITE_WIDTH = 32;
 const INPUT_SPRITE_HEIGHT = 32;
-const SCALE = 3;
-const SPRITE_WIDTH = INPUT_SPRITE_WIDTH * SCALE;
-const SPRITE_HEIGHT = INPUT_SPRITE_HEIGHT * SCALE;
+const MAX_SCALE = 5;
 
-// TODO - allow zooming in and out by scaling sprites
 // TODO - using sprite render info as stencil / mask instead of just drawing the entire square every time
 // TODO - get SDL surface pixel format and ensure we're writing our RGBA data to the surface in the format it's expecting
 
 pub fn main() !void {
+    var scale: usize = 2;
+
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
@@ -96,6 +95,9 @@ pub fn main() !void {
     };
 
     while (running) {
+        const sprite_width = INPUT_SPRITE_WIDTH * scale;
+        const sprite_height = INPUT_SPRITE_HEIGHT * scale;
+
         // clear screen
         for (surface_info.bytes) |*p| {
             p.* = 122;
@@ -107,8 +109,8 @@ pub fn main() !void {
             .pos = Pos{ .x = 0, .y = 0 },
         };
         const player_sprite_pos = .{
-            .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - SPRITE_WIDTH / 2,
-            .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - SPRITE_HEIGHT / 2,
+            .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - sprite_width / 2,
+            .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - sprite_height / 2,
         };
         for (0..map.height) |j| {
             for (0..map.width) |i| {
@@ -119,19 +121,19 @@ pub fn main() !void {
                     .Wall => wall_tile_render_data,
                 };
                 if (maybe_render_data) |render_data| {
-                    const ax = player_sprite_pos.x + i * SPRITE_WIDTH;
-                    const bx = game_state.player_pos.x * SPRITE_WIDTH;
-                    const ay = player_sprite_pos.y + j * SPRITE_HEIGHT;
-                    const by = game_state.player_pos.y * SPRITE_HEIGHT;
+                    const ax = player_sprite_pos.x + i * sprite_width;
+                    const bx = game_state.player_pos.x * sprite_width;
+                    const ay = player_sprite_pos.y + j * sprite_height;
+                    const by = game_state.player_pos.y * sprite_height;
                     if (ax >= bx and ay >= by) {
-                        const x_idx = player_sprite_pos.x + i * SPRITE_WIDTH - game_state.player_pos.x * SPRITE_WIDTH;
-                        const y_idx = player_sprite_pos.y + j * SPRITE_HEIGHT - game_state.player_pos.y * SPRITE_HEIGHT;
-                        if (x_idx + SPRITE_WIDTH < surface_info.width_pixels and y_idx + SPRITE_HEIGHT < surface_info.height_pixels) {
+                        const x_idx = player_sprite_pos.x + i * sprite_width - game_state.player_pos.x * sprite_width;
+                        const y_idx = player_sprite_pos.y + j * sprite_height - game_state.player_pos.y * sprite_height;
+                        if (x_idx + sprite_width < surface_info.width_pixels and y_idx + sprite_height < surface_info.height_pixels) {
                             surface_info.draw(
                                 render_data,
                                 .{ .x = x_idx, .y = y_idx },
                                 clipping_rect,
-                                SCALE,
+                                scale,
                             );
                         }
                     }
@@ -144,7 +146,7 @@ pub fn main() !void {
             rogue_render_data,
             .{ .x = player_sprite_pos.x, .y = player_sprite_pos.y },
             clipping_rect,
-            SCALE,
+            scale,
         );
 
         // handle events
@@ -159,6 +161,8 @@ pub fn main() !void {
                     c.SDLK_DOWN => game_state.handleMove(Disp{ .dx = 0, .dy = 1 }),
                     c.SDLK_LEFT => game_state.handleMove(Disp{ .dx = -1, .dy = 0 }),
                     c.SDLK_RIGHT => game_state.handleMove(Disp{ .dx = 1, .dy = 0 }),
+                    c.SDLK_MINUS => zoomOut(&scale),
+                    c.SDLK_EQUALS => zoomIn(&scale),
                     else => {},
                 }
             }
@@ -172,6 +176,16 @@ pub fn main() !void {
             @panic("Couldn't update window surface");
         }
     }
+}
+
+fn zoomIn(scale: *usize) void {
+    if (scale.* >= MAX_SCALE) return;
+    scale.* += 1;
+}
+
+fn zoomOut(scale: *usize) void {
+    if (scale.* == 1) return;
+    scale.* -= 1;
 }
 
 fn getSurface(window: *c.SDL_Window) Surface {
