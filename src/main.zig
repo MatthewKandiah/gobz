@@ -45,7 +45,6 @@ const INPUT_SPRITE_WIDTH = 32;
 const INPUT_SPRITE_HEIGHT = 32;
 const MAX_SCALE = 5;
 
-// TODO - using sprite render info as stencil / mask instead of just drawing the entire square every time
 // TODO - get SDL surface pixel format and ensure we're writing our RGBA data to the surface in the format it's expecting
 
 pub fn main() !void {
