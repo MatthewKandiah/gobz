@@ -10,7 +10,6 @@ const Rect = @import("../main.zig").Rect;
 
 // TODO - refactor out a snapshot testing util
 // TODO - use a build option to set if we're checking values or overwriting them, currently we just overwrite them everytime
-// TODO - colours are wonky because my SDL surface pixel format is different from the stb_image_write pixel format, test still functions to catch changes in logic, but a little sad
 
 fn makeTestSurface(bytes: []u8, dim: Dim) Surface {
     for (bytes) |*b| {
