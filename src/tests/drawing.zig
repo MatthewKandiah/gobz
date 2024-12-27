@@ -12,6 +12,18 @@ const Rect = @import("../main.zig").Rect;
 // TODO - use a build option to set if we're checking values or overwriting them, currently we just overwrite them everytime
 // TODO - colours are wonky because my SDL surface pixel format is different from the stb_image_write pixel format, test still functions to catch changes in logic, but a little sad
 
+fn makeTestSurface(bytes: []u8, dim: Dim) Surface {
+    for (bytes) |*b| {
+        b.* = 255;
+    }
+    return Surface{
+        .bytes = bytes,
+        .width_pixels = dim.width,
+        .height_pixels = dim.height,
+        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
+    };
+}
+
 test "should render a 32x32 pixel sprite from spritesheet image" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -20,15 +32,7 @@ test "should render a 32x32 pixel sprite from spritesheet image" {
 
     const surface_dim = Dim{ .width = 64, .height = 64 };
     var bytes: [surface_dim.width * surface_dim.height * 4]u8 = undefined;
-    for (&bytes) |*b| {
-        b.* = 255;
-    }
-    const surface = Surface{
-        .bytes = &bytes,
-        .width_pixels = 64,
-        .height_pixels = 64,
-        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
-    };
+    const surface = makeTestSurface(&bytes, surface_dim);
 
     surface.draw(
         render_data,
@@ -54,15 +58,7 @@ test "should reneder a 64x64 pixel sprite from spritesheet image" {
 
     const surface_dim = Dim{ .width = 64, .height = 64 };
     var bytes: [surface_dim.width * surface_dim.height * 4]u8 = undefined;
-    for (&bytes) |*b| {
-        b.* = 255;
-    }
-    const surface = Surface{
-        .bytes = &bytes,
-        .width_pixels = 64,
-        .height_pixels = 64,
-        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
-    };
+    const surface = makeTestSurface(&bytes, surface_dim);
 
     surface.draw(
         render_data,
@@ -88,15 +84,7 @@ test "should only render pixels inside clipping rect" {
 
     const surface_dim = Dim{ .width = 64, .height = 64 };
     var bytes: [surface_dim.width * surface_dim.height * 4]u8 = undefined;
-    for (&bytes) |*b| {
-        b.* = 255;
-    }
-    const surface = Surface{
-        .bytes = &bytes,
-        .width_pixels = 64,
-        .height_pixels = 64,
-        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
-    };
+    const surface = makeTestSurface(&bytes, surface_dim);
 
     surface.draw(
         render_data,
@@ -122,15 +110,7 @@ test "should render a 32x32 pixel scaled up to 64x64" {
 
     const surface_dim = Dim{ .width = 64, .height = 64 };
     var bytes: [surface_dim.width * surface_dim.height * 4]u8 = undefined;
-    for (&bytes) |*b| {
-        b.* = 255;
-    }
-    const surface = Surface{
-        .bytes = &bytes,
-        .width_pixels = 64,
-        .height_pixels = 64,
-        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
-    };
+    const surface = makeTestSurface(&bytes, surface_dim);
 
     surface.draw(
         render_data,
