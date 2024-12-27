@@ -3,14 +3,13 @@ const c = @cImport({
     @cInclude("stb_image.h");
 });
 const RenderInfo = @import("render_info.zig").RenderInfo;
+const Dim = @import("main.zig").Dim;
 
 pub const SpriteMap = struct {
-    height_sprites: usize,
-    width_sprites: usize,
+    dim_sprites: Dim,
     bytes_per_pixel: usize,
     data: []u8,
-    sprite_width_pixels: usize,
-    sprite_height_pixels: usize,
+    sprite_dim_pixels: Dim,
 
     const Self = @This();
 
@@ -43,20 +42,18 @@ pub const SpriteMap = struct {
         }
 
         return SpriteMap{
-            .height_sprites = sprite_row_count,
-            .width_sprites = sprite_column_count,
+            .dim_sprites = Dim{ .height = sprite_row_count, .width = sprite_column_count },
             .bytes_per_pixel = @intCast(input_bytes_per_pixel),
             .data = output_data,
-            .sprite_width_pixels = sprite_width_pixels,
-            .sprite_height_pixels = sprite_height_pixels,
+            .sprite_dim_pixels = Dim{ .height = sprite_height_pixels, .width = sprite_width_pixels },
         };
     }
 
     pub fn get(self: Self, x_idx: usize, y_idx: usize) RenderInfo {
-        const start_idx = 4 * ((x_idx * self.sprite_width_pixels) + (y_idx * self.sprite_height_pixels * self.width_sprites * self.sprite_width_pixels));
-        const byte_count = self.sprite_width_pixels * self.sprite_height_pixels * 4;
+        const start_idx = 4 * ((x_idx * self.sprite_dim_pixels.width) + (y_idx * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width));
+        const byte_count = self.sprite_dim_pixels.width * self.sprite_dim_pixels.height * 4;
         return RenderInfo{
-            .width = self.sprite_width_pixels,
+            .width = self.sprite_dim_pixels.width,
             .data = self.data[start_idx .. start_idx + byte_count],
         };
     }
