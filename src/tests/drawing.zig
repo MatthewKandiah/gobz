@@ -20,7 +20,7 @@ fn makeTestSurface(bytes: []u8, dim: Dim) Surface {
         .bytes = bytes,
         .width_pixels = dim.width,
         .height_pixels = dim.height,
-        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
+        .pixel_format = .{.r = 0, .g = 1, .b = 2, .a = 3},
     };
 }
 
