@@ -25,8 +25,11 @@ pub const Rect = struct {
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
-const SPRITE_WIDTH = 32;
-const SPRITE_HEIGHT = 32;
+const INPUT_SPRITE_WIDTH = 32;
+const INPUT_SPRITE_HEIGHT = 32;
+const SCALE = 3;
+const SPRITE_WIDTH = INPUT_SPRITE_WIDTH * SCALE;
+const SPRITE_HEIGHT = INPUT_SPRITE_HEIGHT * SCALE;
 
 // TODO - allow zooming in and out by scaling sprites
 // TODO - using sprite render info as stencil / mask instead of just drawing the entire square every time
@@ -54,11 +57,11 @@ pub fn main() !void {
     };
 
     // assets from https://sethbb.itch.io/32rogues
-    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", SPRITE_WIDTH, SPRITE_HEIGHT);
-    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", SPRITE_WIDTH, SPRITE_HEIGHT);
-    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", SPRITE_WIDTH, SPRITE_HEIGHT);
-    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", SPRITE_WIDTH, SPRITE_HEIGHT);
-    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", SPRITE_WIDTH, SPRITE_HEIGHT);
+    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
+    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
+    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
+    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
+    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
@@ -99,10 +102,6 @@ pub fn main() !void {
         }
 
         // draw map
-        // const clipping_rect = Rect{
-        //     .dim = Dim{ .width = surface_info.width_pixels * 4 / 5, .height = surface_info.height_pixels },
-        //     .pos = Pos{ .x = 16, .y = 16 },
-        // };
         const clipping_rect = Rect{
             .dim = Dim{ .width = surface_info.width_pixels, .height = surface_info.height_pixels },
             .pos = Pos{ .x = 0, .y = 0 },
@@ -128,7 +127,12 @@ pub fn main() !void {
                         const x_idx = player_sprite_pos.x + i * SPRITE_WIDTH - game_state.player_pos.x * SPRITE_WIDTH;
                         const y_idx = player_sprite_pos.y + j * SPRITE_HEIGHT - game_state.player_pos.y * SPRITE_HEIGHT;
                         if (x_idx + SPRITE_WIDTH < surface_info.width_pixels and y_idx + SPRITE_HEIGHT < surface_info.height_pixels) {
-                            surface_info.draw(render_data, .{ .x = x_idx, .y = y_idx }, clipping_rect);
+                            surface_info.draw(
+                                render_data,
+                                .{ .x = x_idx, .y = y_idx },
+                                clipping_rect,
+                                SCALE,
+                            );
                         }
                     }
                 }
@@ -140,6 +144,7 @@ pub fn main() !void {
             rogue_render_data,
             .{ .x = player_sprite_pos.x, .y = player_sprite_pos.y },
             clipping_rect,
+            SCALE,
         );
 
         // handle events
@@ -183,4 +188,3 @@ test {
     _ = @import("tests/drawing.zig");
     std.testing.refAllDecls(@This());
 }
-
