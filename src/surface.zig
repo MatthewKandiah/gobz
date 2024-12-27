@@ -6,16 +6,21 @@ const Dim = main.Dim;
 const Rect = main.Rect;
 const Pixel = main.Pixel;
 
+pub const PixelFormat = struct {
+    r: usize,
+    g: usize,
+    b: usize,
+    a: usize,
+};
+
 pub const Surface = struct {
     bytes: []u8,
     width_pixels: usize,
     height_pixels: usize,
+    pixel_format: PixelFormat,
 
     const Self = @This();
 
-    // read in from render_info.data RGBA
-    // read out to self.bytes BGRA
-    // each pixel in input maps to scale-by-scale square in output
     pub fn draw(self: Self, input: RenderInfo, pos: Pos, clipping_rect: Rect, scale: usize) void {
         var read_idx: usize = 0;
         var read_pixel_col: usize = 0;
@@ -35,10 +40,10 @@ pub const Surface = struct {
                     };
                     if (clipping_rect.contains(write_pos) and !input.stencil_pixel.check(.{ .r = r, .g = g, .b = b, .a = a })) {
                         const write_idx = write_pixel_idx * 4;
-                        self.bytes[write_idx] = b;
-                        self.bytes[write_idx + 1] = g;
-                        self.bytes[write_idx + 2] = r;
-                        self.bytes[write_idx + 3] = a;
+                        self.bytes[write_idx + self.pixel_format.r] = r;
+                        self.bytes[write_idx + self.pixel_format.g] = g;
+                        self.bytes[write_idx + self.pixel_format.b] = b;
+                        self.bytes[write_idx + self.pixel_format.a] = a;
                     }
                 }
             }

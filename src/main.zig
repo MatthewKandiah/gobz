@@ -210,7 +210,8 @@ fn getSurface(window: *c.SDL_Window) Surface {
     const pixels: [*]u8 = @ptrCast(surface.pixels orelse @panic("No pixels"));
     const pixels_count = 4 * width * height;
     const bytes = pixels[0..pixels_count];
-    return .{ .bytes = bytes, .width_pixels = width, .height_pixels = height };
+    const pixel_format = .{ .r = 2, .g = 1, .b = 0, .a = 3 };
+    return .{ .bytes = bytes, .width_pixels = width, .height_pixels = height, .pixel_format = pixel_format };
 }
 
 test {

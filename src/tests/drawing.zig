@@ -27,6 +27,7 @@ test "should render a 32x32 pixel sprite from spritesheet image" {
         .bytes = &bytes,
         .width_pixels = 64,
         .height_pixels = 64,
+        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
     };
 
     surface.draw(
@@ -60,6 +61,7 @@ test "should reneder a 64x64 pixel sprite from spritesheet image" {
         .bytes = &bytes,
         .width_pixels = 64,
         .height_pixels = 64,
+        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
     };
 
     surface.draw(
@@ -93,6 +95,7 @@ test "should only render pixels inside clipping rect" {
         .bytes = &bytes,
         .width_pixels = 64,
         .height_pixels = 64,
+        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
     };
 
     surface.draw(
@@ -126,6 +129,7 @@ test "should render a 32x32 pixel scaled up to 64x64" {
         .bytes = &bytes,
         .width_pixels = 64,
         .height_pixels = 64,
+        .pixel_format = .{.r = 2, .g = 1, .b = 0, .a = 3},
     };
 
     surface.draw(
