@@ -4,6 +4,7 @@ const main = @import("main.zig");
 const Pos = main.Pos;
 const Dim = main.Dim;
 const Rect = main.Rect;
+const Pixel = main.Pixel;
 
 pub const Surface = struct {
     bytes: []u8,
@@ -32,7 +33,7 @@ pub const Surface = struct {
                         .x = write_pixel_idx % (self.width_pixels),
                         .y = write_pixel_idx / (self.width_pixels),
                     };
-                    if (clipping_rect.contains(write_pos)) {
+                    if (clipping_rect.contains(write_pos) and !input.stencil_pixel.check(.{ .r = r, .g = g, .b = b, .a = a })) {
                         const write_idx = write_pixel_idx * 4;
                         self.bytes[write_idx] = b;
                         self.bytes[write_idx + 1] = g;

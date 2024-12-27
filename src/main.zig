@@ -22,6 +22,22 @@ pub const Rect = struct {
         return (pos.x >= self.pos.x and pos.x < self.pos.x + self.dim.width) and (pos.y >= self.pos.y and pos.y < self.pos.y + self.dim.height);
     }
 };
+pub const Pixel = struct {
+    r: ?u8 = null,
+    g: ?u8 = null,
+    b: ?u8 = null,
+    a: ?u8 = null,
+
+    const Self = @This();
+
+    pub fn allNull(self: Self) bool {
+        return self.r == null and self.g == null and self.b == null and self.a == null;
+    }
+
+    pub fn check(self: Self, other: Pixel) bool {
+        return (self.r == undefined or other.r == undefined or self.r == other.r) and (self.g == undefined or other.g == undefined or self.g == other.g) and (self.b == undefined or other.b == undefined or self.b == other.b) and (self.a == undefined or other.a == undefined or self.a == other.a);
+    }
+};
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
@@ -56,11 +72,11 @@ pub fn main() !void {
     };
 
     // assets from https://sethbb.itch.io/32rogues
-    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
-    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
-    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
-    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
-    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT);
+    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
+    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
+    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
+    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
+    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {

@@ -4,16 +4,18 @@ const c = @cImport({
 });
 const RenderInfo = @import("render_info.zig").RenderInfo;
 const Dim = @import("main.zig").Dim;
+const Pixel = @import("main.zig").Pixel;
 
 pub const SpriteMap = struct {
     data: []u8,
     bytes_per_pixel: usize,
     dim_sprites: Dim,
     sprite_dim_pixels: Dim,
+    background_pixel: Pixel,
 
     const Self = @This();
 
-    pub fn load(allocator: std.mem.Allocator, path: []const u8, sprite_width_pixels: usize, sprite_height_pixels: usize) !Self {
+    pub fn load(allocator: std.mem.Allocator, path: []const u8, sprite_width_pixels: usize, sprite_height_pixels: usize, background_pixel: Pixel) !Self {
         var input_width: c_int = undefined;
         var input_height: c_int = undefined;
         var input_bytes_per_pixel: c_int = undefined;
@@ -46,6 +48,7 @@ pub const SpriteMap = struct {
             .bytes_per_pixel = @intCast(input_bytes_per_pixel),
             .data = output_data,
             .sprite_dim_pixels = Dim{ .height = sprite_height_pixels, .width = sprite_width_pixels },
+            .background_pixel = background_pixel,
         };
     }
 
@@ -55,6 +58,7 @@ pub const SpriteMap = struct {
         return RenderInfo{
             .width = self.sprite_dim_pixels.width,
             .data = self.data[start_idx .. start_idx + byte_count],
+            .stencil_pixel = self.background_pixel,
         };
     }
 };
