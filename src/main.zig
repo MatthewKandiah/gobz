@@ -44,6 +44,7 @@ const DEFAULT_HEIGHT = 800;
 const INPUT_SPRITE_WIDTH = 32;
 const INPUT_SPRITE_HEIGHT = 32;
 const MAX_SCALE = 5;
+const CLEAR_VALUE = 0;
 
 pub fn main() !void {
     var scale: usize = 2;
@@ -113,7 +114,7 @@ pub fn main() !void {
 
         // clear screen
         for (surface_info.bytes) |*p| {
-            p.* = 122;
+            p.* = CLEAR_VALUE;
         }
 
         // draw map
