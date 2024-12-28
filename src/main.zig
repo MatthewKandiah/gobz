@@ -27,19 +27,34 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
+    var rng = std.Random.DefaultPrng.init(@intCast(std.time.timestamp()));
+    const random = rng.random();
     // setup map
     const map_dim_tiles = Dim{
-        .width = 200,
-        .height = 200,
+        .width = 30,
+        .height = 30,
     };
-    var map_data: [map_dim_tiles.width * map_dim_tiles.height]MapValue = undefined;
-    for (&map_data, 0..) |*m, i| {
-        if (i % 10 == 0) {
-            m.* = .Wall;
-        } else {
-            m.* = .Floor;
+    const map_tile_count = map_dim_tiles.width * map_dim_tiles.height;
+    var map_data: [map_tile_count]MapValue = .{.Wall} ** map_tile_count;
+    const max_room_dim_tiles = Dim{ .width = 7, .height = 7 };
+    const min_room_dim_tiles = Dim{ .width = 3, .height = 3 };
+    const total_room_count = 10;
+    for (0..total_room_count) |_| {
+        const room_dim_tiles = Dim{
+            .width = random.intRangeAtMost(usize, min_room_dim_tiles.width, max_room_dim_tiles.width),
+            .height = random.intRangeAtMost(usize, min_room_dim_tiles.height, max_room_dim_tiles.height),
+        };
+        const room_pos = Pos{
+            .x = random.intRangeAtMost(usize, 1, map_dim_tiles.width - 1 - room_dim_tiles.width),
+            .y = random.intRangeAtMost(usize, 1, map_dim_tiles.height - 1 - room_dim_tiles.height),
+        };
+        for (0..room_dim_tiles.height) |j| {
+            for (0..room_dim_tiles.width) |i| {
+                map_data[room_pos.x + i + (room_pos.y + j) * map_dim_tiles.width] = .Floor;
+            }
         }
     }
+
     const map = Map{
         .data = &map_data,
         .dim_tiles = map_dim_tiles,
@@ -80,7 +95,7 @@ pub fn main() !void {
     var running = true;
     var event: c.SDL_Event = undefined;
     var game_state = GameState{
-        .player_pos = Pos{ .x = 0, .y = 0 },
+        .player_pos = Pos{ .x = 15, .y = 15 },
         .map = map,
     };
 
