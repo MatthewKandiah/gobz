@@ -13,10 +13,10 @@ pub const GameState = struct {
         var new_player_y: usize = self.player_pos.y;
         const shifted_x = @as(i32, @intCast(self.player_pos.x)) + disp.dx;
         const shifted_y = @as(i32, @intCast(self.player_pos.y)) + disp.dy;
-        if (shifted_x >= 0 and shifted_x < self.map.width) {
+        if (shifted_x >= 0 and shifted_x < self.map.dim_tiles.width) {
             new_player_x = @intCast(shifted_x);
         }
-        if (shifted_y >= 0 and shifted_y < self.map.height) {
+        if (shifted_y >= 0 and shifted_y < self.map.dim_tiles.height) {
             new_player_y = @intCast(shifted_y);
         }
         if (self.map.get(new_player_x, new_player_y) != .Wall) {

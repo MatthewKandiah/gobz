@@ -28,9 +28,11 @@ pub fn main() !void {
     const allocator = gpa.allocator();
 
     // setup map
-    const map_width = 200;
-    const map_height = 200;
-    var map_data: [map_width * map_height]MapValue = undefined;
+    const map_dim_tiles = Dim{
+        .width = 200,
+        .height = 200,
+    };
+    var map_data: [map_dim_tiles.width * map_dim_tiles.height]MapValue = undefined;
     for (&map_data, 0..) |*m, i| {
         if (i % 10 == 0) {
             m.* = .Wall;
@@ -40,8 +42,7 @@ pub fn main() !void {
     }
     const map = Map{
         .data = &map_data,
-        .width = map_width,
-        .height = map_height,
+        .dim_tiles = map_dim_tiles,
     };
 
     // assets from https://sethbb.itch.io/32rogues
@@ -101,8 +102,8 @@ pub fn main() !void {
             .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - sprite_width / 2,
             .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - sprite_height / 2,
         };
-        for (0..map.height) |j| {
-            for (0..map.width) |i| {
+        for (0..map.dim_tiles.height) |j| {
+            for (0..map.dim_tiles.width) |i| {
                 const map_cell = map.get(i, j) orelse @panic("should never happen");
                 const maybe_render_data = switch (map_cell) {
                     .Clear => null,
