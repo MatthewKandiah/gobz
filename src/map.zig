@@ -1,8 +1,4 @@
-pub const MapValue = enum {
-    Clear,
-    Floor,
-    Wall,
-};
+const MapValue = @import("map_value.zig").MapValue;
 
 pub const Map = struct {
     data: []const MapValue,
