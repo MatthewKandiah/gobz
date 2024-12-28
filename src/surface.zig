@@ -13,6 +13,12 @@ pub const PixelFormat = struct {
     a: usize,
 };
 
+pub const Colour = struct {
+    r: u8,
+    g: u8,
+    b: u8,
+};
+
 pub const Surface = struct {
     bytes: []u8,
     width_pixels: usize,
@@ -21,7 +27,7 @@ pub const Surface = struct {
 
     const Self = @This();
 
-    pub fn draw(self: Self, input: RenderInfo, pos: Pos, clipping_rect: Rect, scale: usize) void {
+    pub fn draw(self: Self, input: RenderInfo, pos: Pos, clipping_rect: Rect, scale: usize, override_colour: ?Colour) void {
         var read_idx: usize = 0;
         var read_pixel_col: usize = 0;
         var read_pixel_row: usize = 0;
@@ -40,10 +46,17 @@ pub const Surface = struct {
                     };
                     if (clipping_rect.contains(write_pos) and !input.stencil_pixel.check(.{ .r = r, .g = g, .b = b, .a = a })) {
                         const write_idx = write_pixel_idx * 4;
-                        self.bytes[write_idx + self.pixel_format.r] = r;
-                        self.bytes[write_idx + self.pixel_format.g] = g;
-                        self.bytes[write_idx + self.pixel_format.b] = b;
-                        self.bytes[write_idx + self.pixel_format.a] = a;
+                        if (override_colour) |c| {
+                            self.bytes[write_idx + self.pixel_format.r] = c.r;
+                            self.bytes[write_idx + self.pixel_format.g] = c.g;
+                            self.bytes[write_idx + self.pixel_format.b] = c.b;
+                            self.bytes[write_idx + self.pixel_format.a] = a;
+                        } else {
+                            self.bytes[write_idx + self.pixel_format.r] = r;
+                            self.bytes[write_idx + self.pixel_format.g] = g;
+                            self.bytes[write_idx + self.pixel_format.b] = b;
+                            self.bytes[write_idx + self.pixel_format.a] = a;
+                        }
                     }
                 }
             }
