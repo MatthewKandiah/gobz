@@ -211,12 +211,11 @@ fn getSurface(window: *c.SDL_Window) Surface {
     const pixels_count = 4 * width * height;
     const bytes = pixels[0..pixels_count];
 
-    const sdl_pixel_format = surface.format;
     const pixel_format = .{
-        .r = maskToIndex(sdl_pixel_format.*.Rmask),
-        .g = maskToIndex(sdl_pixel_format.*.Gmask),
-        .b = maskToIndex(sdl_pixel_format.*.Bmask),
-        .a = maskToIndex(sdl_pixel_format.*.Amask),
+        .r = maskToIndex(surface.format.*.Rmask),
+        .g = maskToIndex(surface.format.*.Gmask),
+        .b = maskToIndex(surface.format.*.Bmask),
+        .a = maskToIndex(surface.format.*.Amask),
     };
     return .{ .bytes = bytes, .width_pixels = width, .height_pixels = height, .pixel_format = pixel_format };
 }
