@@ -1,10 +1,9 @@
 const std = @import("std");
 const RenderInfo = @import("render_info.zig").RenderInfo;
-const main = @import("main.zig");
-const Pos = main.Pos;
-const Dim = main.Dim;
-const Rect = main.Rect;
-const Pixel = main.Pixel;
+const Pos = @import("pos.zig").Pos;
+const Dim = @import("dim.zig").Dim;
+const Rect = @import("rect.zig").Rect;
+const Pixel = @import("pixel.zig").Pixel;
 
 pub const PixelFormat = struct {
     r: usize,

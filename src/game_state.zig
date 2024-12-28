@@ -1,5 +1,5 @@
-const Pos = @import("main.zig").Pos;
-const Disp = @import("main.zig").Disp;
+const Pos = @import("pos.zig").Pos;
+const Disp = @import("disp.zig").Disp;
 const Map = @import("map.zig").Map;
 
 pub const GameState = struct {

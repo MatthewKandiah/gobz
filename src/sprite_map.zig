@@ -3,8 +3,8 @@ const c = @cImport({
     @cInclude("stb_image.h");
 });
 const RenderInfo = @import("render_info.zig").RenderInfo;
-const Dim = @import("main.zig").Dim;
-const Pixel = @import("main.zig").Pixel;
+const Dim = @import("dim.zig").Dim;
+const Pixel = @import("pixel.zig").Pixel;
 
 pub const SpriteMap = struct {
     data: []u8,

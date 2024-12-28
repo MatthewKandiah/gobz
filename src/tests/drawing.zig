@@ -4,9 +4,9 @@ const c = @cImport({
 });
 const SpriteMap = @import("../sprite_map.zig").SpriteMap;
 const Surface = @import("../surface.zig").Surface;
-const Dim = @import("../main.zig").Dim;
-const Pos = @import("../main.zig").Pos;
-const Rect = @import("../main.zig").Rect;
+const Dim = @import("../dim.zig").Dim;
+const Pos = @import("../pos.zig").Pos;
+const Rect = @import("../rect.zig").Rect;
 
 // TODO - refactor out a snapshot testing util
 // TODO - use a build option to set if we're checking values or overwriting them, currently we just overwrite them everytime

@@ -1,4 +1,4 @@
-const Pixel = @import("main.zig").Pixel;
+const Pixel = @import("pixel.zig").Pixel;
 
 pub const RenderInfo = struct {
     width: usize,
