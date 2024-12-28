@@ -10,18 +10,6 @@ const Rect = @import("../rect.zig").Rect;
 const Pixel = @import("../pixel.zig").Pixel;
 const Colour = @import("../colour.zig").Colour;
 
-fn makeTestSurface(bytes: []u8, dim: Dim) Surface {
-    for (bytes) |*b| {
-        b.* = 255;
-    }
-    return Surface{
-        .bytes = bytes,
-        .width_pixels = dim.width,
-        .height_pixels = dim.height,
-        .pixel_format = .{ .r = 0, .g = 1, .b = 2, .a = 3 },
-    };
-}
-
 const SnapshotOptions = struct {
     sprite_sheet_path: []const u8 = "sprites/32rogues/rogues.png",
     sprite_dim_pixels: Dim = .{ .width = 32, .height = 32 },
@@ -71,6 +59,18 @@ fn doSnapshotTest(comptime options: SnapshotOptions) !void {
     if (write_res == 0) {
         @panic("Failed to write snapshot image");
     }
+}
+
+fn makeTestSurface(bytes: []u8, dim: Dim) Surface {
+    for (bytes) |*b| {
+        b.* = 255;
+    }
+    return Surface{
+        .bytes = bytes,
+        .width_pixels = dim.width,
+        .height_pixels = dim.height,
+        .pixel_format = .{ .r = 0, .g = 1, .b = 2, .a = 3 },
+    };
 }
 
 test "should render a 32x32 pixel sprite from spritesheet image" {
