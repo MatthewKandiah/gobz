@@ -18,4 +18,3 @@ pub const Map = struct {
         return self.data[y * self.width + x];
     }
 };
-

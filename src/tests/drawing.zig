@@ -19,14 +19,14 @@ fn makeTestSurface(bytes: []u8, dim: Dim) Surface {
         .bytes = bytes,
         .width_pixels = dim.width,
         .height_pixels = dim.height,
-        .pixel_format = .{.r = 0, .g = 1, .b = 2, .a = 3},
+        .pixel_format = .{ .r = 0, .g = 1, .b = 2, .a = 3 },
     };
 }
 
 test "should render a 32x32 pixel sprite from spritesheet image" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 32, 32, .{.a = 0});
+    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 32, 32, .{ .a = 0 });
     const render_data = sprite_sheet.get(0, 0);
 
     const surface_dim = Dim{ .width = 64, .height = 64 };
@@ -52,7 +52,7 @@ test "should render a 32x32 pixel sprite from spritesheet image" {
 test "should reneder a 64x64 pixel sprite from spritesheet image" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 64, 64, .{.a = 0});
+    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 64, 64, .{ .a = 0 });
     const render_data = sprite_sheet.get(0, 0);
 
     const surface_dim = Dim{ .width = 64, .height = 64 };
@@ -78,7 +78,7 @@ test "should reneder a 64x64 pixel sprite from spritesheet image" {
 test "should only render pixels inside clipping rect" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 64, 64, .{.a = 0});
+    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 64, 64, .{ .a = 0 });
     const render_data = sprite_sheet.get(0, 0);
 
     const surface_dim = Dim{ .width = 64, .height = 64 };
@@ -104,7 +104,7 @@ test "should only render pixels inside clipping rect" {
 test "should render a 32x32 pixel scaled up to 64x64" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
-    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 32, 32, .{.a = 0});
+    const sprite_sheet = try SpriteMap.load(allocator, "sprites/32rogues/rogues.png", 32, 32, .{ .a = 0 });
     const render_data = sprite_sheet.get(0, 0);
 
     const surface_dim = Dim{ .width = 64, .height = 64 };

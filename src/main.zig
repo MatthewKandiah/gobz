@@ -210,8 +210,30 @@ fn getSurface(window: *c.SDL_Window) Surface {
     const pixels: [*]u8 = @ptrCast(surface.pixels orelse @panic("No pixels"));
     const pixels_count = 4 * width * height;
     const bytes = pixels[0..pixels_count];
-    const pixel_format = .{ .r = 2, .g = 1, .b = 0, .a = 3 };
+
+    const sdl_pixel_format = surface.format;
+    const pixel_format = .{
+        .r = maskToIndex(sdl_pixel_format.*.Rmask),
+        .g = maskToIndex(sdl_pixel_format.*.Gmask),
+        .b = maskToIndex(sdl_pixel_format.*.Bmask),
+        .a = maskToIndex(sdl_pixel_format.*.Amask),
+    };
     return .{ .bytes = bytes, .width_pixels = width, .height_pixels = height, .pixel_format = pixel_format };
+}
+
+fn maskToIndex(mask: u32) usize {
+    if (mask == 0x00_00_00_ff) {
+        return 0;
+    } else if (mask == 0x00_00_ff_00) {
+        return 1;
+    } else if (mask == 0x00_ff_00_00) {
+        return 2;
+    } else if (mask == 0xff_00_00_00) {
+        return 3;
+    } else {
+        return 3; // turns out the alpha channel on my laptop is 0
+    }
+    unreachable;
 }
 
 test {

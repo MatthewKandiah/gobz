@@ -5,4 +5,3 @@ pub const RenderInfo = struct {
     data: []u8,
     stencil_pixel: Pixel,
 };
-
