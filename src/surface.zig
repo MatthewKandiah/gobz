@@ -4,19 +4,8 @@ const Pos = @import("pos.zig").Pos;
 const Dim = @import("dim.zig").Dim;
 const Rect = @import("rect.zig").Rect;
 const Pixel = @import("pixel.zig").Pixel;
-
-pub const PixelFormat = struct {
-    r: usize,
-    g: usize,
-    b: usize,
-    a: usize,
-};
-
-pub const Colour = struct {
-    r: u8,
-    g: u8,
-    b: u8,
-};
+const PixelFormat = @import("pixel_format.zig").PixelFormat;
+const Colour = @import("colour.zig").Colour;
 
 pub const Surface = struct {
     bytes: []u8,
