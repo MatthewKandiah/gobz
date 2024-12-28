@@ -10,8 +10,6 @@ const Rect = @import("../rect.zig").Rect;
 const Pixel = @import("../pixel.zig").Pixel;
 const Colour = @import("../colour.zig").Colour;
 
-// TODO - use a build option to set if we're checking values or overwriting them, currently we just overwrite them everytime
-
 fn makeTestSurface(bytes: []u8, dim: Dim) Surface {
     for (bytes) |*b| {
         b.* = 255;
