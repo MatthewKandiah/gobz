@@ -161,7 +161,7 @@ pub fn main() !void {
             .{ .x = player_sprite_pos.x, .y = player_sprite_pos.y },
             clipping_rect,
             scale,
-            .{.r = 255, .g = 255, .b = 0},
+            .{ .r = 255, .g = 255, .b = 0 },
         );
 
         // handle events
