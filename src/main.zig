@@ -171,7 +171,6 @@ pub fn main() !void {
                 }
                 const map_cell = map.get(p) orelse @panic("should never happen");
                 const maybe_render_data = switch (map_cell) {
-                    .Clear => null,
                     .Floor => floor_tile_render_data,
                     .Wall => null,
                 };
