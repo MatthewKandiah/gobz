@@ -21,8 +21,10 @@ const INPUT_SPRITE_HEIGHT = 32;
 const MAX_SCALE = 5;
 const CLEAR_VALUE = 0;
 
+// TODO - performance monitoring, cpu cycles and wall clock time per frame
+
 pub fn main() !void {
-    var scale: usize = 1;
+    var scale: usize = 2;
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -37,9 +39,9 @@ pub fn main() !void {
     };
     const map_tile_count = map_dim_tiles.width * map_dim_tiles.height;
     var map_data: [map_tile_count]MapValue = .{.Wall} ** map_tile_count;
-    const max_room_dim_tiles = Dim{ .width = 7, .height = 7 };
+    const max_room_dim_tiles = Dim{ .width = 9, .height = 9 };
     const min_room_dim_tiles = Dim{ .width = 3, .height = 3 };
-    const room_count = 20;
+    const room_count = 50;
     // add rooms
     var rooms: [room_count]Rect = undefined;
     for (0..room_count) |n| {
