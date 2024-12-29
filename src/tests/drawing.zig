@@ -29,11 +29,10 @@ var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 const allocator = gpa.allocator();
 
 fn doSnapshotTest(comptime options: SnapshotOptions) !void {
-    const sprite_sheet = try SpriteMap.load(
+    const sprite_sheet = try SpriteMap.loadFull(
         allocator,
         options.sprite_sheet_path,
-        options.sprite_dim_pixels.width,
-        options.sprite_dim_pixels.height,
+        options.sprite_dim_pixels,
         options.background_pixel,
     );
     const render_data = sprite_sheet.get(0, 0);

@@ -18,8 +18,7 @@ const Profiler = @import("profiler.zig").Profiler;
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
-const INPUT_SPRITE_WIDTH = 32;
-const INPUT_SPRITE_HEIGHT = 32;
+const INPUT_SPRITE_DIM_PIXELS = .{ .width = 32, .height = 32 };
 const MAX_SCALE = 5;
 const CLEAR_VALUE = 0;
 const PLAYER_VIEW_RANGE = 8;
@@ -94,11 +93,11 @@ pub fn main() !void {
     };
 
     // assets from https://sethbb.itch.io/32rogues
-    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
-    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
-    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
-    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
-    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_WIDTH, INPUT_SPRITE_HEIGHT, Pixel{ .a = 0 });
+    const animals_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const items_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const monsters_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const rogues_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const tiles_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
@@ -135,8 +134,8 @@ pub fn main() !void {
 
     while (running) {
         try profiler.capture("MainLoopStart");
-        const sprite_width = INPUT_SPRITE_WIDTH * scale;
-        const sprite_height = INPUT_SPRITE_HEIGHT * scale;
+        const sprite_width = INPUT_SPRITE_DIM_PIXELS.width * scale;
+        const sprite_height = INPUT_SPRITE_DIM_PIXELS.height * scale;
 
         // update visibility
         for (0..map.dim_tiles.height) |j| {
