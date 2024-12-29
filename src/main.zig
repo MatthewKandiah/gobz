@@ -24,10 +24,18 @@ const MAX_SCALE = 5;
 const CLEAR_VALUE = 0;
 const PLAYER_VIEW_RANGE = 8;
 
-// TODO - performance monitoring, cpu cycles and wall clock time per frame
+// TODO - performance instrumentation
+//          - initialise a global Profiler instance
+//          - store estimated tsc frequency on that global Profiler
+//          - want the profiler to keep a list of pairs (Label, Value)
+//          - Label is a descriptive string describing where the timestamp was recorded
+//          - Value is the rdtsc result
+//          - Profiler.report function takes a list of pairs of labels and prints the time elapsed between them
+//          - Profiler.capture(label) function that sets the value for that label in the global profiler
 
 pub fn main() !void {
     const cpu_ticks_per_millisecond = profiler.tscFreqTicksPerMillisecond();
+    defer std.debug.print("cpu_ticks_per_s: {}\n", .{cpu_ticks_per_millisecond * 1000});
     const tsc0 = profiler.rdtsc(); 
     var scale: usize = 2;
 
@@ -242,9 +250,7 @@ pub fn main() !void {
 
         const main_loop_end_tsc = profiler.rdtsc();
         const frame_time_ms = @as(f64, @floatFromInt(main_loop_end_tsc - last_tsc)) / cpu_ticks_per_millisecond;
-        const frame_time_s = frame_time_ms / 1000;
-        const fps = 1 / frame_time_s;
-        std.debug.print("Frame time: {d:.6}ms\tFPS: {d:.3}\n", .{frame_time_ms, fps});
+        std.debug.print("Frame time: {d:.6}ms\n", .{frame_time_ms});
         last_tsc = main_loop_end_tsc;
     }
 }
