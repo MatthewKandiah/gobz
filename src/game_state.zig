@@ -19,7 +19,7 @@ pub const GameState = struct {
         if (shifted_y >= 0 and shifted_y < self.map.dim_tiles.height) {
             new_player_y = @intCast(shifted_y);
         }
-        if (self.map.get(new_player_x, new_player_y) != .Wall) {
+        if (self.map.get(Pos{ .x = new_player_x, .y = new_player_y }) != .Wall) {
             self.*.player_pos.x = new_player_x;
             self.*.player_pos.y = new_player_y;
         }

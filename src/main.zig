@@ -147,7 +147,7 @@ pub fn main() !void {
         };
         for (0..map.dim_tiles.height) |j| {
             for (0..map.dim_tiles.width) |i| {
-                const map_cell = map.get(i, j) orelse @panic("should never happen");
+                const map_cell = map.get(Pos{.x = i, .y = j}) orelse @panic("should never happen");
                 const maybe_render_data = switch (map_cell) {
                     .Clear => null,
                     .Floor => floor_tile_render_data,
