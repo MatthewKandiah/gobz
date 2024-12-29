@@ -15,7 +15,7 @@ pub const SpriteMap = struct {
 
     const Self = @This();
 
-    pub fn loadFull(allocator: std.mem.Allocator, path: []const u8, sprite_dim_pixels: Dim, background_pixel: Pixel) !Self {
+    pub fn load(allocator: std.mem.Allocator, path: []const u8, sprite_dim_pixels: Dim, background_pixel: Pixel) !Self {
         var input_width: c_int = undefined;
         var input_height: c_int = undefined;
         var input_bytes_per_pixel: c_int = undefined;
@@ -51,8 +51,6 @@ pub const SpriteMap = struct {
             .background_pixel = background_pixel,
         };
     }
-
-    // TODO - loadDense that stores booleans instead of 4 u8s for sprites that we're always going to overwrite the colour for
 
     pub fn get(self: Self, x_idx: usize, y_idx: usize) RenderInfo {
         const start_idx = 4 * ((x_idx * self.sprite_dim_pixels.width) + (y_idx * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width));

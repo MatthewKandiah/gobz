@@ -93,11 +93,11 @@ pub fn main() !void {
     };
 
     // assets from https://sethbb.itch.io/32rogues
-    const animals_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
-    const items_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
-    const monsters_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
-    const rogues_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
-    const tiles_sprite_map = try SpriteMap.loadFull(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
