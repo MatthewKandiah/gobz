@@ -14,6 +14,7 @@ const Disp = @import("disp.zig").Disp;
 const Pixel = @import("pixel.zig").Pixel;
 const Rect = @import("rect.zig").Rect;
 const VisibilityValue = @import("visibility_value.zig").VisibilityValue;
+const profiler = @import("profiler.zig");
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
@@ -26,6 +27,8 @@ const PLAYER_VIEW_RANGE = 8;
 // TODO - performance monitoring, cpu cycles and wall clock time per frame
 
 pub fn main() !void {
+    const cpu_ticks_per_millisecond = profiler.tscFreqTicksPerMillisecond();
+    const tsc0 = profiler.rdtsc(); 
     var scale: usize = 2;
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -131,7 +134,12 @@ pub fn main() !void {
         .player_pos = rooms[0].pos,
         .map = map,
     };
+    
+    const tsc1 = profiler.rdtsc();
+    const initialisation_time = @as(f64, @floatFromInt(tsc1 - tsc0)) / cpu_ticks_per_millisecond;
+    std.debug.print("Initialisation: {}ms\n", .{initialisation_time});
 
+    var last_tsc = profiler.rdtsc();
     while (running) {
         const sprite_width = INPUT_SPRITE_WIDTH * scale;
         const sprite_height = INPUT_SPRITE_HEIGHT * scale;
@@ -231,6 +239,13 @@ pub fn main() !void {
         if (c.SDL_UpdateWindowSurface(window) < 0) {
             @panic("Couldn't update window surface");
         }
+
+        const main_loop_end_tsc = profiler.rdtsc();
+        const frame_time_ms = @as(f64, @floatFromInt(main_loop_end_tsc - last_tsc)) / cpu_ticks_per_millisecond;
+        const frame_time_s = frame_time_ms / 1000;
+        const fps = 1 / frame_time_s;
+        std.debug.print("Frame time: {d:.6}ms\tFPS: {d:.3}\n", .{frame_time_ms, fps});
+        last_tsc = main_loop_end_tsc;
     }
 }
 
