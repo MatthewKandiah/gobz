@@ -22,24 +22,27 @@ const MAX_SCALE = 5;
 const CLEAR_VALUE = 0;
 
 pub fn main() !void {
-    var scale: usize = 2;
+    var scale: usize = 1;
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
 
-    var rng = std.Random.DefaultPrng.init(@intCast(std.time.timestamp()));
+    const rng_seed = std.time.timestamp();
+    var rng = std.Random.DefaultPrng.init(@intCast(rng_seed));
     const random = rng.random();
     // setup map
     const map_dim_tiles = Dim{
-        .width = 30,
-        .height = 30,
+        .width = 200,
+        .height = 100,
     };
     const map_tile_count = map_dim_tiles.width * map_dim_tiles.height;
     var map_data: [map_tile_count]MapValue = .{.Wall} ** map_tile_count;
     const max_room_dim_tiles = Dim{ .width = 7, .height = 7 };
     const min_room_dim_tiles = Dim{ .width = 3, .height = 3 };
-    const total_room_count = 10;
-    for (0..total_room_count) |_| {
+    const room_count = 20;
+    // add rooms
+    var rooms: [room_count]Rect = undefined;
+    for (0..room_count) |n| {
         const room_dim_tiles = Dim{
             .width = random.intRangeAtMost(usize, min_room_dim_tiles.width, max_room_dim_tiles.width),
             .height = random.intRangeAtMost(usize, min_room_dim_tiles.height, max_room_dim_tiles.height),
@@ -48,9 +51,31 @@ pub fn main() !void {
             .x = random.intRangeAtMost(usize, 1, map_dim_tiles.width - 1 - room_dim_tiles.width),
             .y = random.intRangeAtMost(usize, 1, map_dim_tiles.height - 1 - room_dim_tiles.height),
         };
+        rooms[n] = Rect{ .pos = room_pos, .dim = room_dim_tiles };
         for (0..room_dim_tiles.height) |j| {
             for (0..room_dim_tiles.width) |i| {
                 map_data[room_pos.x + i + (room_pos.y + j) * map_dim_tiles.width] = .Floor;
+            }
+        }
+        // add corridors
+        if (n != 0) {
+            const start_point = Pos{
+                .x = random.intRangeLessThan(usize, rooms[n].pos.x, rooms[n].pos.x + rooms[n].dim.width),
+                .y = random.intRangeLessThan(usize, rooms[n].pos.y, rooms[n].pos.y + rooms[n].dim.height),
+            };
+            const end_point = Pos{
+                .x = random.intRangeLessThan(usize, rooms[n - 1].pos.x, rooms[n - 1].pos.x + rooms[n - 1].dim.width),
+                .y = random.intRangeLessThan(usize, rooms[n - 1].pos.y, rooms[n - 1].pos.y + rooms[n - 1].dim.height),
+            };
+            const min_x = @min(start_point.x, end_point.x);
+            const max_x = @max(start_point.x, end_point.x);
+            const min_y = @min(start_point.y, end_point.y);
+            const max_y = @max(start_point.y, end_point.y);
+            for (min_x..max_x + 1) |x| {
+                map_data[x + start_point.y * map_dim_tiles.width] = .Floor;
+            }
+            for (min_y..max_y + 1) |y| {
+                map_data[end_point.x + y * map_dim_tiles.width] = .Floor;
             }
         }
     }
@@ -89,13 +114,14 @@ pub fn main() !void {
     _ = monster_render_data;
     const rogue_render_data = rogues_sprite_map.get(0, 0);
     const wall_tile_render_data = tiles_sprite_map.get(0, 0);
+    _ = wall_tile_render_data;
     const floor_tile_render_data = tiles_sprite_map.get(0, 1);
 
     var surface_info = getSurface(window);
     var running = true;
     var event: c.SDL_Event = undefined;
     var game_state = GameState{
-        .player_pos = Pos{ .x = 15, .y = 15 },
+        .player_pos = rooms[0].pos,
         .map = map,
     };
 
@@ -123,7 +149,7 @@ pub fn main() !void {
                 const maybe_render_data = switch (map_cell) {
                     .Clear => null,
                     .Floor => floor_tile_render_data,
-                    .Wall => wall_tile_render_data,
+                    .Wall => null,
                 };
                 if (maybe_render_data) |render_data| {
                     const ax = player_sprite_pos.x + i * sprite_width;
