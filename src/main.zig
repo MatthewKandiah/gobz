@@ -14,7 +14,7 @@ const Disp = @import("disp.zig").Disp;
 const Pixel = @import("pixel.zig").Pixel;
 const Rect = @import("rect.zig").Rect;
 const VisibilityValue = @import("visibility_value.zig").VisibilityValue;
-const profiler = @import("profiler.zig");
+const Profiler = @import("profiler.zig").Profiler;
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
@@ -24,23 +24,13 @@ const MAX_SCALE = 5;
 const CLEAR_VALUE = 0;
 const PLAYER_VIEW_RANGE = 8;
 
-// TODO - performance instrumentation
-//          - initialise a global Profiler instance
-//          - store estimated tsc frequency on that global Profiler
-//          - want the profiler to keep a list of pairs (Label, Value)
-//          - Label is a descriptive string describing where the timestamp was recorded
-//          - Value is the rdtsc result
-//          - Profiler.report function takes a list of pairs of labels and prints the time elapsed between them
-//          - Profiler.capture(label) function that sets the value for that label in the global profiler
-
 pub fn main() !void {
-    const cpu_ticks_per_millisecond = profiler.tscFreqTicksPerMillisecond();
-    defer std.debug.print("cpu_ticks_per_s: {}\n", .{cpu_ticks_per_millisecond * 1000});
-    const tsc0 = profiler.rdtsc(); 
-    var scale: usize = 2;
-
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
+
+    var profiler = Profiler.init(allocator);
+
+    var scale: usize = 2;
 
     const rng_seed = std.time.timestamp();
     var rng = std.Random.DefaultPrng.init(@intCast(rng_seed));
@@ -142,13 +132,9 @@ pub fn main() !void {
         .player_pos = rooms[0].pos,
         .map = map,
     };
-    
-    const tsc1 = profiler.rdtsc();
-    const initialisation_time = @as(f64, @floatFromInt(tsc1 - tsc0)) / cpu_ticks_per_millisecond;
-    std.debug.print("Initialisation: {}ms\n", .{initialisation_time});
 
-    var last_tsc = profiler.rdtsc();
     while (running) {
+        try profiler.capture("MainLoopStart");
         const sprite_width = INPUT_SPRITE_WIDTH * scale;
         const sprite_height = INPUT_SPRITE_HEIGHT * scale;
 
@@ -180,7 +166,7 @@ pub fn main() !void {
         };
         for (0..map.dim_tiles.height) |j| {
             for (0..map.dim_tiles.width) |i| {
-                const p = Pos{.x = i, .y = j};
+                const p = Pos{ .x = i, .y = j };
                 const v = map.getVisibility(p);
                 if (v == .Unknown) {
                     continue;
@@ -204,7 +190,7 @@ pub fn main() !void {
                                 .{ .x = x_idx, .y = y_idx },
                                 clipping_rect,
                                 scale,
-                                if (v == .KnownNotVisible) .{.r = 122, .g = 122, .b = 122} else null,
+                                if (v == .KnownNotVisible) .{ .r = 122, .g = 122, .b = 122 } else null,
                             );
                         }
                     }
@@ -247,11 +233,9 @@ pub fn main() !void {
         if (c.SDL_UpdateWindowSurface(window) < 0) {
             @panic("Couldn't update window surface");
         }
+        try profiler.capture("MainLoopEnd");
 
-        const main_loop_end_tsc = profiler.rdtsc();
-        const frame_time_ms = @as(f64, @floatFromInt(main_loop_end_tsc - last_tsc)) / cpu_ticks_per_millisecond;
-        std.debug.print("Frame time: {d:.6}ms\n", .{frame_time_ms});
-        last_tsc = main_loop_end_tsc;
+        profiler.report("MainLoopStart", "MainLoopEnd");
     }
 }
 
