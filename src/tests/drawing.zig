@@ -182,6 +182,6 @@ test "should render a 32x32 pixel sprite with override colour" {
     try doSnapshotTest(SnapshotOptions{
         .snapshot_path = "snapshot/drawing_32x32_scale_2_override_red.png",
         .draw_scale = 2,
-        .draw_override_colour = .{ .r = 255, .g = 0, .b = 0 },
+        .draw_override_colour = RED,
     });
 }
