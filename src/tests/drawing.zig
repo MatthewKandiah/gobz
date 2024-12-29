@@ -39,7 +39,7 @@ fn doSnapshotTest(comptime options: SnapshotOptions) !void {
     var bytes: [options.surface_dim.height * options.surface_dim.width * 4]u8 = undefined;
     const surface = makeTestSurface(&bytes, options.surface_dim);
 
-    surface.draw(
+    surface.drawFull(
         render_data,
         options.draw_pos,
         options.draw_clipping_rect,
@@ -111,3 +111,5 @@ test "should render a 32x32 pixel sprite with override colour" {
         .draw_override_colour = .{ .r = 255, .g = 0, .b = 0 },
     });
 }
+
+// TODO - dense spritemap drawing test

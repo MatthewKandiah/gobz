@@ -93,10 +93,8 @@ pub fn main() !void {
     };
 
     // assets from https://sethbb.itch.io/32rogues
-    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
-    const items_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/items.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
-    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
     const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const rogues_dense_sprite_map = try rogues_sprite_map.toDense(allocator);
     const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
@@ -113,15 +111,7 @@ pub fn main() !void {
         c.SDL_WINDOW_RESIZABLE,
     ) orelse @panic("no window");
 
-    const animal_render_data = animals_sprite_map.get(0, 0);
-    const item_render_data = items_sprite_map.get(0, 0);
-    const monster_render_data = monsters_sprite_map.get(0, 0);
-    _ = animal_render_data;
-    _ = item_render_data;
-    _ = monster_render_data;
-    const rogue_render_data = rogues_sprite_map.get(0, 0);
-    const wall_tile_render_data = tiles_sprite_map.get(0, 0);
-    _ = wall_tile_render_data;
+    const rogue_render_data = rogues_dense_sprite_map.get(0, 0);
     const floor_tile_render_data = tiles_sprite_map.get(0, 1);
 
     var surface_info = getSurface(window);
@@ -184,7 +174,7 @@ pub fn main() !void {
                         const x_idx = player_sprite_pos.x + i * sprite_width - game_state.player_pos.x * sprite_width;
                         const y_idx = player_sprite_pos.y + j * sprite_height - game_state.player_pos.y * sprite_height;
                         if (x_idx + sprite_width < surface_info.width_pixels and y_idx + sprite_height < surface_info.height_pixels) {
-                            surface_info.draw(
+                            surface_info.drawFull(
                                 render_data,
                                 .{ .x = x_idx, .y = y_idx },
                                 clipping_rect,
@@ -198,7 +188,7 @@ pub fn main() !void {
         }
 
         // draw player
-        surface_info.draw(
+        surface_info.drawDense(
             rogue_render_data,
             .{ .x = player_sprite_pos.x, .y = player_sprite_pos.y },
             clipping_rect,

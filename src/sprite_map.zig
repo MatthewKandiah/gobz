@@ -2,7 +2,9 @@ const std = @import("std");
 const c = @cImport({
     @cInclude("stb_image.h");
 });
-const RenderInfo = @import("render_info.zig").RenderInfo;
+const RenderInfo = @import("render_info.zig");
+const FullRenderInfo = RenderInfo.FullRenderInfo;
+const DenseRenderInfo = RenderInfo.DenseRenderInfo;
 const Dim = @import("dim.zig").Dim;
 const Pixel = @import("pixel.zig").Pixel;
 
@@ -52,13 +54,54 @@ pub const SpriteMap = struct {
         };
     }
 
-    pub fn get(self: Self, x_idx: usize, y_idx: usize) RenderInfo {
+    // TODO - Pos refactor
+    pub fn get(self: Self, x_idx: usize, y_idx: usize) FullRenderInfo {
         const start_idx = 4 * ((x_idx * self.sprite_dim_pixels.width) + (y_idx * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width));
         const byte_count = self.sprite_dim_pixels.width * self.sprite_dim_pixels.height * 4;
-        return RenderInfo{
+        return FullRenderInfo{
             .width = self.sprite_dim_pixels.width,
             .data = self.data[start_idx .. start_idx + byte_count],
             .stencil_pixel = self.background_pixel,
+        };
+    }
+
+    pub fn toDense(self: Self, allocator: std.mem.Allocator) !DenseSpriteMap {
+        const buf_size = self.data.len / 4;
+        var data_buf = try allocator.alloc(bool, buf_size);
+
+        for (0..buf_size) |i| {
+            const input_pixel = Pixel{
+                .r = self.data[4 * i + 0],
+                .g = self.data[4 * i + 1],
+                .b = self.data[4 * i + 2],
+                .a = self.data[4 * i + 3],
+            };
+            const is_background = self.background_pixel.check(input_pixel);
+            data_buf[i] = !is_background;
+        }
+
+        return DenseSpriteMap{
+            .data = data_buf,
+            .dim_sprites = self.dim_sprites,
+            .sprite_dim_pixels = self.sprite_dim_pixels,
+        };
+    }
+};
+
+pub const DenseSpriteMap = struct {
+    data: []bool,
+    dim_sprites: Dim,
+    sprite_dim_pixels: Dim,
+
+    const Self = @This();
+
+    // TODO - Pos refactor
+    pub fn get(self: Self, x_idx: usize, y_idx: usize) DenseRenderInfo {
+        const start_idx = (x_idx * self.sprite_dim_pixels.width) + (y_idx * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width);
+        const bool_count = self.sprite_dim_pixels.width * self.sprite_dim_pixels.height;
+        return DenseRenderInfo{
+            .width = self.sprite_dim_pixels.width,
+            .data = self.data[start_idx .. start_idx + bool_count],
         };
     }
 };
