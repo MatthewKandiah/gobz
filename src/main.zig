@@ -13,6 +13,7 @@ const Pos = @import("pos.zig").Pos;
 const Disp = @import("disp.zig").Disp;
 const Pixel = @import("pixel.zig").Pixel;
 const Rect = @import("rect.zig").Rect;
+const VisibilityValue = @import("visibility_value.zig").VisibilityValue;
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
@@ -20,6 +21,7 @@ const INPUT_SPRITE_WIDTH = 32;
 const INPUT_SPRITE_HEIGHT = 32;
 const MAX_SCALE = 5;
 const CLEAR_VALUE = 0;
+const PLAYER_VIEW_RANGE = 8;
 
 // TODO - performance monitoring, cpu cycles and wall clock time per frame
 
@@ -82,8 +84,11 @@ pub fn main() !void {
         }
     }
 
-    const map = Map{
+    var visibility_data = [_]VisibilityValue{.Unknown} ** map_tile_count;
+
+    var map = Map{
         .data = &map_data,
+        .visibility = &visibility_data,
         .dim_tiles = map_dim_tiles,
     };
 
@@ -131,6 +136,18 @@ pub fn main() !void {
         const sprite_width = INPUT_SPRITE_WIDTH * scale;
         const sprite_height = INPUT_SPRITE_HEIGHT * scale;
 
+        // update visibility
+        for (0..map.dim_tiles.height) |j| {
+            for (0..map.dim_tiles.width) |i| {
+                const p = Pos{ .x = i, .y = j };
+                if (p.dist(game_state.player_pos) < PLAYER_VIEW_RANGE) {
+                    map.setVisibility(p, .Visible);
+                } else if (map.getVisibility(p) == .Visible) {
+                    map.setVisibility(p, .KnownNotVisible);
+                }
+            }
+        }
+
         // clear screen
         for (surface_info.bytes) |*p| {
             p.* = CLEAR_VALUE;
@@ -147,7 +164,12 @@ pub fn main() !void {
         };
         for (0..map.dim_tiles.height) |j| {
             for (0..map.dim_tiles.width) |i| {
-                const map_cell = map.get(Pos{.x = i, .y = j}) orelse @panic("should never happen");
+                const p = Pos{.x = i, .y = j};
+                const v = map.getVisibility(p);
+                if (v == .Unknown) {
+                    continue;
+                }
+                const map_cell = map.get(p) orelse @panic("should never happen");
                 const maybe_render_data = switch (map_cell) {
                     .Clear => null,
                     .Floor => floor_tile_render_data,
@@ -167,7 +189,7 @@ pub fn main() !void {
                                 .{ .x = x_idx, .y = y_idx },
                                 clipping_rect,
                                 scale,
-                                null,
+                                if (v == .KnownNotVisible) .{.r = 122, .g = 122, .b = 122} else null,
                             );
                         }
                     }
