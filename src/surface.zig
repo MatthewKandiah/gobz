@@ -17,6 +17,12 @@ pub const Surface = struct {
 
     const Self = @This();
 
+    pub fn clear(self: Self) void {
+        for (self.bytes) |*b| {
+            b.* = 0;
+        }
+    }
+
     pub fn drawFull(self: Self, input: FullRenderInfo, pos: Pos, clipping_rect: Rect, scale: usize, override_colour: ?Colour) void {
         var read_idx: usize = 0;
         var read_pixel_col: usize = 0;

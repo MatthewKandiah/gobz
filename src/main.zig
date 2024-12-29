@@ -20,7 +20,6 @@ const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
 const INPUT_SPRITE_DIM_PIXELS = .{ .width = 32, .height = 32 };
 const MAX_SCALE = 5;
-const CLEAR_VALUE = 0;
 const PLAYER_VIEW_RANGE = 8;
 
 pub fn main() !void {
@@ -128,6 +127,7 @@ pub fn main() !void {
         const sprite_height = INPUT_SPRITE_DIM_PIXELS.height * scale;
 
         // update visibility
+        // TODO - move to GameState function
         for (0..map.dim_tiles.height) |j| {
             for (0..map.dim_tiles.width) |i| {
                 const p = Pos{ .x = i, .y = j };
@@ -139,11 +139,9 @@ pub fn main() !void {
             }
         }
 
-        // clear screen
-        for (surface_info.bytes) |*p| {
-            p.* = CLEAR_VALUE;
-        }
+        surface_info.clear();
 
+        // TODO - pull map & player drawing into a function, move to GameState function that takes a surface? or a Surface function that takes a GameState? Think the latter
         // draw map
         const clipping_rect = Rect{
             .dim = Dim{ .width = surface_info.width_pixels, .height = surface_info.height_pixels },
@@ -196,6 +194,7 @@ pub fn main() !void {
             .{ .r = 255, .g = 255, .b = 0 },
         );
 
+        // TODO - pull into a function, probably on GameState with reference to Surface for handling resizing? Expect user inputs to only update GameState
         // handle events
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
             if (event.type == c.SDL_QUIT) {
