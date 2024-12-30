@@ -85,7 +85,7 @@ pub fn main() !void {
 
     var visibility_data = [_]VisibilityValue{.Unknown} ** map_tile_count;
 
-    var map = Map{
+    const map = Map{
         .data = &map_data,
         .visibility = &visibility_data,
         .dim_tiles = map_dim_tiles,
@@ -123,64 +123,20 @@ pub fn main() !void {
 
     while (running) {
         try profiler.capture("MainLoopStart");
-        const sprite_width = INPUT_SPRITE_DIM_PIXELS.width * scale;
-        const sprite_height = INPUT_SPRITE_DIM_PIXELS.height * scale;
+        const sprite_dim_pixels = Dim{
+            .width = INPUT_SPRITE_DIM_PIXELS.width * scale,
+            .height = INPUT_SPRITE_DIM_PIXELS.height * scale,
+        };
 
         surface_info.clear();
         game_state.updateVisibility(PLAYER_VIEW_RANGE);
 
-        // TODO - pull map & player drawing into a function, move to GameState function that takes a surface? or a Surface function that takes a GameState? Think the latter
-        // draw map
         const clipping_rect = Rect{
             .dim = Dim{ .width = surface_info.width_pixels, .height = surface_info.height_pixels },
             .pos = Pos{ .x = 0, .y = 0 },
         };
-        const player_sprite_pos = .{
-            .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - sprite_width / 2,
-            .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - sprite_height / 2,
-        };
-        for (0..map.dim_tiles.height) |j| {
-            for (0..map.dim_tiles.width) |i| {
-                const p = Pos{ .x = i, .y = j };
-                const v = map.getVisibility(p);
-                if (v == .Unknown) {
-                    continue;
-                }
-                const map_cell = map.get(p) orelse @panic("should never happen");
-                const maybe_render_data = switch (map_cell) {
-                    .Floor => floor_tile_render_data,
-                    .Wall => null,
-                };
-                if (maybe_render_data) |render_data| {
-                    const ax = player_sprite_pos.x + i * sprite_width;
-                    const bx = game_state.player_pos.x * sprite_width;
-                    const ay = player_sprite_pos.y + j * sprite_height;
-                    const by = game_state.player_pos.y * sprite_height;
-                    if (ax >= bx and ay >= by) {
-                        const x_idx = player_sprite_pos.x + i * sprite_width - game_state.player_pos.x * sprite_width;
-                        const y_idx = player_sprite_pos.y + j * sprite_height - game_state.player_pos.y * sprite_height;
-                        if (x_idx + sprite_width < surface_info.width_pixels and y_idx + sprite_height < surface_info.height_pixels) {
-                            surface_info.drawFull(
-                                render_data,
-                                .{ .x = x_idx, .y = y_idx },
-                                clipping_rect,
-                                scale,
-                                if (v == .KnownNotVisible) .{ .r = 122, .g = 122, .b = 122 } else null,
-                            );
-                        }
-                    }
-                }
-            }
-        }
-
-        // draw player
-        surface_info.drawDense(
-            rogue_render_data,
-            .{ .x = player_sprite_pos.x, .y = player_sprite_pos.y },
-            clipping_rect,
-            scale,
-            .{ .r = 255, .g = 255, .b = 0 },
-        );
+        surface_info.drawMap(map, clipping_rect, sprite_dim_pixels, floor_tile_render_data, game_state.player_pos, scale);
+        surface_info.drawPlayer(clipping_rect, sprite_dim_pixels, rogue_render_data, scale);
 
         // TODO - pull into a function, probably on GameState with reference to Surface for handling resizing? Expect user inputs to only update GameState
         // handle events

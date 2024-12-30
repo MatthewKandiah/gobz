@@ -8,6 +8,7 @@ const Rect = @import("rect.zig").Rect;
 const Pixel = @import("pixel.zig").Pixel;
 const PixelFormat = @import("pixel_format.zig").PixelFormat;
 const Colour = @import("colour.zig").Colour;
+const Map = @import("map.zig").Map;
 
 pub const Surface = struct {
     bytes: []u8,
@@ -101,5 +102,59 @@ pub const Surface = struct {
                 read_pixel_row += 1;
             }
         }
+    }
+
+    pub fn drawMap(self: Self, map: Map, clipping_rect: Rect, sprite_dim_pixels: Dim, floor_tile_render_data: FullRenderInfo, player_pos: Pos, scale: usize) void {
+        const player_sprite_pos = .{
+            .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - sprite_dim_pixels.width / 2,
+            .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - sprite_dim_pixels.height / 2,
+        };
+        for (0..map.dim_tiles.height) |j| {
+            for (0..map.dim_tiles.width) |i| {
+                const p = Pos{ .x = i, .y = j };
+                const v = map.getVisibility(p);
+                if (v == .Unknown) {
+                    continue;
+                }
+                const map_cell = map.get(p) orelse @panic("should never happen");
+                const maybe_render_data = switch (map_cell) {
+                    .Floor => floor_tile_render_data,
+                    .Wall => null,
+                };
+                if (maybe_render_data) |render_data| {
+                    const ax = player_sprite_pos.x + i * sprite_dim_pixels.width;
+                    const bx = player_pos.x * sprite_dim_pixels.width;
+                    const ay = player_sprite_pos.y + j * sprite_dim_pixels.height;
+                    const by = player_pos.y * sprite_dim_pixels.height;
+                    if (ax >= bx and ay >= by) {
+                        const x_idx = player_sprite_pos.x + i * sprite_dim_pixels.width - player_pos.x * sprite_dim_pixels.width;
+                        const y_idx = player_sprite_pos.y + j * sprite_dim_pixels.height - player_pos.y * sprite_dim_pixels.height;
+                        if (x_idx + sprite_dim_pixels.width < self.width_pixels and y_idx + sprite_dim_pixels.height < self.height_pixels) {
+                            self.drawFull(
+                                render_data,
+                                .{ .x = x_idx, .y = y_idx },
+                                clipping_rect,
+                                scale,
+                                if (v == .KnownNotVisible) .{ .r = 122, .g = 122, .b = 122 } else null,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn drawPlayer(self: Self, clipping_rect: Rect, sprite_dim_pixels: Dim, player_render_data: DenseRenderInfo, scale: usize) void {
+        const player_sprite_pos = .{
+            .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - sprite_dim_pixels.width / 2,
+            .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - sprite_dim_pixels.height / 2,
+        };
+        self.drawDense(
+            player_render_data,
+            .{ .x = player_sprite_pos.x, .y = player_sprite_pos.y },
+            clipping_rect,
+            scale,
+            .{ .r = 255, .g = 255, .b = 0 },
+        );
     }
 };
