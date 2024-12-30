@@ -114,15 +114,15 @@ pub fn main() !void {
     const floor_tile_render_data = tiles_sprite_map.get(0, 1);
 
     var surface_info = getSurface(window);
-    var running = true;
     var event: c.SDL_Event = undefined;
     var game_state = GameState{
         .player_pos = rooms[0].pos,
         .map = map,
         .window_resized = false,
+        .running = true,
     };
 
-    while (running) {
+    while (game_state.running) {
         try profiler.capture("MainLoopStart");
         const sprite_dim_pixels = Dim{
             .width = INPUT_SPRITE_DIM_PIXELS.width * scale,
@@ -141,11 +141,11 @@ pub fn main() !void {
 
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
             if (event.type == c.SDL_QUIT) {
-                running = false;
+                game_state.running = false;
             }
             if (event.type == c.SDL_KEYDOWN) {
                 switch (event.key.keysym.sym) {
-                    c.SDLK_ESCAPE => running = false,
+                    c.SDLK_ESCAPE => game_state.running = false,
                     c.SDLK_UP => game_state.handleMove(Disp{ .dx = 0, .dy = -1 }),
                     c.SDLK_DOWN => game_state.handleMove(Disp{ .dx = 0, .dy = 1 }),
                     c.SDLK_LEFT => game_state.handleMove(Disp{ .dx = -1, .dy = 0 }),

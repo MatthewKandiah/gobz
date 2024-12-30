@@ -6,6 +6,7 @@ pub const GameState = struct {
     player_pos: Pos,
     map: Map,
     window_resized: bool,
+    running: bool,
 
     const Self = @This();
 
