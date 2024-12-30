@@ -126,20 +126,8 @@ pub fn main() !void {
         const sprite_width = INPUT_SPRITE_DIM_PIXELS.width * scale;
         const sprite_height = INPUT_SPRITE_DIM_PIXELS.height * scale;
 
-        // update visibility
-        // TODO - move to GameState function
-        for (0..map.dim_tiles.height) |j| {
-            for (0..map.dim_tiles.width) |i| {
-                const p = Pos{ .x = i, .y = j };
-                if (p.dist(game_state.player_pos) < PLAYER_VIEW_RANGE) {
-                    map.setVisibility(p, .Visible);
-                } else if (map.getVisibility(p) == .Visible) {
-                    map.setVisibility(p, .KnownNotVisible);
-                }
-            }
-        }
-
         surface_info.clear();
+        game_state.updateVisibility(PLAYER_VIEW_RANGE);
 
         // TODO - pull map & player drawing into a function, move to GameState function that takes a surface? or a Surface function that takes a GameState? Think the latter
         // draw map

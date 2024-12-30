@@ -24,4 +24,17 @@ pub const GameState = struct {
             self.*.player_pos.y = new_player_y;
         }
     }
+
+    pub fn updateVisibility(self: *Self, view_range: f32) void {
+        for (0..self.map.dim_tiles.height) |j| {
+            for (0..self.map.dim_tiles.width) |i| {
+                const p = Pos{ .x = i, .y = j };
+                if (p.dist(self.player_pos) < view_range) {
+                    self.map.setVisibility(p, .Visible);
+                } else if (self.map.getVisibility(p) == .Visible) {
+                    self.map.setVisibility(p, .KnownNotVisible);
+                }
+            }
+        }
+    }
 };
