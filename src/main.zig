@@ -28,8 +28,6 @@ pub fn main() !void {
 
     var profiler = Profiler.init(allocator);
 
-    var scale: usize = 2;
-
     const rng_seed = std.time.timestamp();
     var rng = std.Random.DefaultPrng.init(@intCast(rng_seed));
     const random = rng.random();
@@ -120,13 +118,14 @@ pub fn main() !void {
         .map = map,
         .window_resized = false,
         .running = true,
+        .scale = 2,
     };
 
     while (game_state.running) {
         try profiler.capture("MainLoopStart");
         const sprite_dim_pixels = Dim{
-            .width = INPUT_SPRITE_DIM_PIXELS.width * scale,
-            .height = INPUT_SPRITE_DIM_PIXELS.height * scale,
+            .width = INPUT_SPRITE_DIM_PIXELS.width * game_state.scale,
+            .height = INPUT_SPRITE_DIM_PIXELS.height * game_state.scale,
         };
 
         surface_info.clear();
@@ -136,8 +135,8 @@ pub fn main() !void {
             .dim = Dim{ .width = surface_info.width_pixels, .height = surface_info.height_pixels },
             .pos = Pos{ .x = 0, .y = 0 },
         };
-        surface_info.drawMap(map, clipping_rect, sprite_dim_pixels, floor_tile_render_data, game_state.player_pos, scale);
-        surface_info.drawPlayer(clipping_rect, sprite_dim_pixels, rogue_render_data, scale);
+        surface_info.drawMap(map, clipping_rect, sprite_dim_pixels, floor_tile_render_data, game_state.player_pos, game_state.scale);
+        surface_info.drawPlayer(clipping_rect, sprite_dim_pixels, rogue_render_data, game_state.scale);
 
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
             if (event.type == c.SDL_QUIT) {
@@ -150,8 +149,8 @@ pub fn main() !void {
                     c.SDLK_DOWN => game_state.handleMove(Disp{ .dx = 0, .dy = 1 }),
                     c.SDLK_LEFT => game_state.handleMove(Disp{ .dx = -1, .dy = 0 }),
                     c.SDLK_RIGHT => game_state.handleMove(Disp{ .dx = 1, .dy = 0 }),
-                    c.SDLK_MINUS => zoomOut(&scale),
-                    c.SDLK_EQUALS => zoomIn(&scale),
+                    c.SDLK_MINUS => zoomOut(&game_state),
+                    c.SDLK_EQUALS => zoomIn(&game_state),
                     else => {},
                 }
             }
@@ -174,14 +173,14 @@ pub fn main() !void {
     }
 }
 
-fn zoomIn(scale: *usize) void {
-    if (scale.* >= MAX_SCALE) return;
-    scale.* += 1;
+fn zoomIn(game_state: *GameState) void {
+    if (game_state.scale >= MAX_SCALE) return;
+    game_state.scale += 1;
 }
 
-fn zoomOut(scale: *usize) void {
-    if (scale.* == 1) return;
-    scale.* -= 1;
+fn zoomOut(game_state: *GameState) void {
+    if (game_state.scale == 1) return;
+    game_state.scale -= 1;
 }
 
 fn getSurface(window: *c.SDL_Window) Surface {

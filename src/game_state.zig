@@ -7,6 +7,7 @@ pub const GameState = struct {
     map: Map,
     window_resized: bool,
     running: bool,
+    scale: usize,
 
     const Self = @This();
 
