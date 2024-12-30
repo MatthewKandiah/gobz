@@ -5,6 +5,7 @@ const Map = @import("map.zig").Map;
 pub const GameState = struct {
     player_pos: Pos,
     map: Map,
+    window_resized: bool,
 
     const Self = @This();
 

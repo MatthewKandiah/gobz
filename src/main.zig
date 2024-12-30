@@ -119,6 +119,7 @@ pub fn main() !void {
     var game_state = GameState{
         .player_pos = rooms[0].pos,
         .map = map,
+        .window_resized = false,
     };
 
     while (running) {
@@ -138,8 +139,6 @@ pub fn main() !void {
         surface_info.drawMap(map, clipping_rect, sprite_dim_pixels, floor_tile_render_data, game_state.player_pos, scale);
         surface_info.drawPlayer(clipping_rect, sprite_dim_pixels, rogue_render_data, scale);
 
-        // TODO - pull into a function, probably on GameState with reference to Surface for handling resizing? Expect user inputs to only update GameState
-        // handle events
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
             if (event.type == c.SDL_QUIT) {
                 running = false;
@@ -157,9 +156,13 @@ pub fn main() !void {
                 }
             }
             if (event.type == c.SDL_WINDOWEVENT) {
-                // handle window resizing
-                surface_info = getSurface(window);
+                game_state.window_resized = true;
             }
+        }
+
+        if (game_state.window_resized) {
+            game_state.window_resized = false;
+            surface_info = getSurface(window);
         }
 
         if (c.SDL_UpdateWindowSurface(window) < 0) {
