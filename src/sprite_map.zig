@@ -7,6 +7,7 @@ const FullRenderInfo = RenderInfo.FullRenderInfo;
 const DenseRenderInfo = RenderInfo.DenseRenderInfo;
 const Dim = @import("dim.zig").Dim;
 const Pixel = @import("pixel.zig").Pixel;
+const Pos = @import("pos.zig").Pos;
 
 pub const SpriteMap = struct {
     data: []u8,
@@ -54,9 +55,8 @@ pub const SpriteMap = struct {
         };
     }
 
-    // TODO - Pos refactor
-    pub fn get(self: Self, x_idx: usize, y_idx: usize) FullRenderInfo {
-        const start_idx = 4 * ((x_idx * self.sprite_dim_pixels.width) + (y_idx * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width));
+    pub fn get(self: Self, sprite_pos: Pos) FullRenderInfo {
+        const start_idx = 4 * ((sprite_pos.x * self.sprite_dim_pixels.width) + (sprite_pos.y * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width));
         const byte_count = self.sprite_dim_pixels.width * self.sprite_dim_pixels.height * 4;
         return FullRenderInfo{
             .width = self.sprite_dim_pixels.width,
@@ -95,9 +95,8 @@ pub const DenseSpriteMap = struct {
 
     const Self = @This();
 
-    // TODO - Pos refactor
-    pub fn get(self: Self, x_idx: usize, y_idx: usize) DenseRenderInfo {
-        const start_idx = (x_idx * self.sprite_dim_pixels.width) + (y_idx * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width);
+    pub fn get(self: Self, sprite_pos: Pos) DenseRenderInfo {
+        const start_idx = (sprite_pos.x * self.sprite_dim_pixels.width) + (sprite_pos.y * self.sprite_dim_pixels.height * self.dim_sprites.width * self.sprite_dim_pixels.width);
         const bool_count = self.sprite_dim_pixels.width * self.sprite_dim_pixels.height;
         return DenseRenderInfo{
             .width = self.sprite_dim_pixels.width,

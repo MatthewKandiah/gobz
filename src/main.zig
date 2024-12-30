@@ -110,8 +110,8 @@ pub fn main() !void {
         c.SDL_WINDOW_RESIZABLE,
     ) orelse @panic("no window");
 
-    const rogue_render_data = rogues_dense_sprite_map.get(0, 0);
-    const floor_tile_render_data = tiles_sprite_map.get(0, 1);
+    const rogue_render_data = rogues_dense_sprite_map.get(.{ .x = 0, .y = 0 });
+    const floor_tile_render_data = tiles_sprite_map.get(.{ .x = 0, .y = 1 });
 
     var surface_info = getSurface(window);
     var event: c.SDL_Event = undefined;

@@ -4,8 +4,7 @@ fn rdtsc() u64 {
     var hi: u32 = 0;
     var low: u32 = 0;
 
-    asm (
-        "rdtsc"
+    asm ("rdtsc"
         : [low] "={eax}" (low),
           [hi] "={edx}" (hi),
     );
@@ -65,6 +64,6 @@ pub const Profiler = struct {
         }
         const diff_ticks = end_ticks - start_ticks;
         const diff_time_ms = self.countToMilliseconds(diff_ticks);
-        std.debug.print("PROFILE: {s} to {s}\n\t{d:.6}ms\n\n", .{start_label, end_label, diff_time_ms});
+        std.debug.print("PROFILE: {s} to {s}\n\t{d:.6}ms\n\n", .{ start_label, end_label, diff_time_ms });
     }
 };

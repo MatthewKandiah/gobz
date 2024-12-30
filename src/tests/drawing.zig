@@ -37,7 +37,7 @@ fn doSnapshotTest(comptime options: SnapshotOptions) !void {
         options.sprite_dim_pixels,
         options.background_pixel,
     );
-    const render_data = sprite_sheet.get(0, 0);
+    const render_data = sprite_sheet.get(.{ .x = 0, .y = 0 });
     var bytes: [options.surface_dim.height * options.surface_dim.width * 4]u8 = undefined;
     const surface = makeTestSurface(&bytes, options.surface_dim);
 
@@ -85,7 +85,7 @@ fn doDenseSnapshotTest(comptime options: DenseSnapshotOptions) !void {
         options.background_pixel,
     );
     const dense_sprite_sheet = try sprite_sheet.toDense(allocator);
-    const render_data = dense_sprite_sheet.get(0, 0);
+    const render_data = dense_sprite_sheet.get(.{ .x = 0, .y = 0 });
     var bytes: [options.surface_dim.height * options.surface_dim.width * 4]u8 = undefined;
     const surface = makeTestSurface(&bytes, options.surface_dim);
 
