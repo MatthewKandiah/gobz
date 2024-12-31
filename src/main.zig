@@ -20,8 +20,9 @@ const DEFAULT_HEIGHT = 800;
 const INPUT_SPRITE_DIM_PIXELS = .{ .width = 32, .height = 32 };
 const MAX_SCALE = 5;
 const PLAYER_VIEW_RANGE = 8;
-
-// TODO - implement line drawing algorithm and use it to make visibility updating more reasonable
+const MAP_WIDTH = 200;
+const MAP_HEIGHT = 100;
+pub const MAP_MAX_DIMENSION = @max(MAP_WIDTH, MAP_HEIGHT);
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -130,7 +131,7 @@ pub fn main() !void {
         };
 
         surface_info.clear();
-        game_state.updateVisibility(PLAYER_VIEW_RANGE);
+        game_state.updateVisibility(MAP_MAX_DIMENSION, PLAYER_VIEW_RANGE);
 
         const clipping_rect = Rect{
             .dim = Dim{ .width = surface_info.width_pixels, .height = surface_info.height_pixels },
