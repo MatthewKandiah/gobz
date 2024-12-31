@@ -4,7 +4,6 @@ const c = @cImport({
 });
 const SpriteMap = @import("sprite_map.zig").SpriteMap;
 const Surface = @import("surface.zig").Surface;
-const RenderInfo = @import("render_info.zig").RenderInfo;
 const Map = @import("map.zig").Map;
 const MapValue = @import("map_value.zig").MapValue;
 const GameState = @import("game_state.zig").GameState;
