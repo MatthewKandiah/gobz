@@ -21,6 +21,8 @@ const INPUT_SPRITE_DIM_PIXELS = .{ .width = 32, .height = 32 };
 const MAX_SCALE = 5;
 const PLAYER_VIEW_RANGE = 8;
 
+// TODO - implement line drawing algorithm and use it to make visibility updating more reasonable
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
