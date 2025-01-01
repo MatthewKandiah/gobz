@@ -1,6 +1,7 @@
 const std = @import("std");
 const Pos = @import("pos.zig").Pos;
 
+// TODO - looking around corners isn't symmetric, would be better if it were
 pub fn drawLine(start: Pos, end: Pos, pos_buffer: []Pos) []Pos {
     const dx: f64 = @as(f64, @floatFromInt(end.x)) - @as(f64, @floatFromInt(start.x));
     const dy: f64 = @as(f64, @floatFromInt(end.y)) - @as(f64, @floatFromInt(start.y));
