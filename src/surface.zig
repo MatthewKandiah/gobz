@@ -144,6 +144,36 @@ pub const Surface = struct {
         }
     }
 
+    pub fn drawBears(self: Self, map: Map, clipping_rect: Rect, sprite_dim_pixels: Dim, bear_render_data: DenseRenderInfo, bears_pos: []Pos, player_pos: Pos, scale: usize) void {
+        const player_sprite_pos = .{
+            .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - sprite_dim_pixels.width / 2,
+            .y = clipping_rect.pos.y + clipping_rect.dim.height / 2 - sprite_dim_pixels.height / 2,
+        };
+
+        for (bears_pos) |bear_pos| {
+            const v = map.getVisibility(bear_pos);
+            if (v == .Visible) {
+                const ax = player_sprite_pos.x + bear_pos.x * sprite_dim_pixels.width;
+                const bx = player_pos.x * sprite_dim_pixels.width;
+                const ay = player_sprite_pos.y + bear_pos.y * sprite_dim_pixels.height;
+                const by = player_pos.y * sprite_dim_pixels.height;
+                if (ax >= bx and ay >= by) {
+                    const x_idx = player_sprite_pos.x + bear_pos.x * sprite_dim_pixels.width - player_pos.x * sprite_dim_pixels.width;
+                    const y_idx = player_sprite_pos.y + bear_pos.y * sprite_dim_pixels.height - player_pos.y * sprite_dim_pixels.height;
+                    if (x_idx + sprite_dim_pixels.width < self.width_pixels and y_idx + sprite_dim_pixels.height < self.height_pixels) {
+                        self.drawDense(
+                            bear_render_data,
+                            .{ .x = x_idx, .y = y_idx },
+                            clipping_rect,
+                            scale,
+                            Colour{ .r = 255, .g = 0, .b = 0 },
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     pub fn drawPlayer(self: Self, clipping_rect: Rect, sprite_dim_pixels: Dim, player_render_data: DenseRenderInfo, scale: usize) void {
         const player_sprite_pos = .{
             .x = clipping_rect.pos.x + clipping_rect.dim.width / 2 - sprite_dim_pixels.width / 2,

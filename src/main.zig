@@ -94,6 +94,8 @@ pub fn main() !void {
     // assets from https://sethbb.itch.io/32rogues
     const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
     const rogues_dense_sprite_map = try rogues_sprite_map.toDense(allocator);
+    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const animals_dense_sprite_map = try animals_sprite_map.toDense(allocator);
     const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
@@ -111,16 +113,26 @@ pub fn main() !void {
     ) orelse @panic("no window");
 
     const rogue_render_data = rogues_dense_sprite_map.get(.{ .x = 0, .y = 0 });
+    const bear_render_data = animals_dense_sprite_map.get(.{ .x = 1, .y = 0 });
     const floor_tile_render_data = tiles_sprite_map.get(.{ .x = 0, .y = 1 });
 
     var surface_info = getSurface(window);
     var event: c.SDL_Event = undefined;
+    var bears_pos: [room_count - 1]Pos = undefined;
+    for (1..room_count) |i| {
+        const room = rooms[i];
+        bears_pos[i - 1] = .{
+            .x = room.pos.x + random.intRangeLessThan(usize, 0, room.dim.width),
+            .y = room.pos.y + random.intRangeLessThan(usize, 0, room.dim.height),
+        };
+    }
     var game_state = GameState{
         .player_pos = rooms[0].pos,
         .map = map,
         .window_resized = false,
         .running = true,
         .scale = 2,
+        .bears_pos = &bears_pos,
     };
 
     while (game_state.running) {
@@ -138,6 +150,7 @@ pub fn main() !void {
             .pos = Pos{ .x = 0, .y = 0 },
         };
         surface_info.drawMap(map, clipping_rect, sprite_dim_pixels, floor_tile_render_data, game_state.player_pos, game_state.scale);
+        surface_info.drawBears(map, clipping_rect, sprite_dim_pixels, bear_render_data, game_state.bears_pos, game_state.player_pos, game_state.scale);
         surface_info.drawPlayer(clipping_rect, sprite_dim_pixels, rogue_render_data, game_state.scale);
 
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {

@@ -10,6 +10,7 @@ pub const GameState = struct {
     window_resized: bool,
     running: bool,
     scale: usize,
+    bears_pos: []Pos,
 
     const Self = @This();
 
