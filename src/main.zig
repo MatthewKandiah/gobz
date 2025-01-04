@@ -103,6 +103,8 @@ pub fn main() !void {
     const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
     const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
     const monsters_dense_sprite_map = try monsters_sprite_map.toDense(allocator);
+    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const animals_dense_sprite_map = try animals_sprite_map.toDense(allocator);
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
@@ -123,23 +125,27 @@ pub fn main() !void {
     const floor_tile_render_data = tiles_sprite_map.get(.{ .x = 0, .y = 1 });
     const enemy_type_render_info_lookup: [std.meta.fields(EnemyType).len]DenseRenderInfo = .{
         monsters_dense_sprite_map.get(.{ .x = 0, .y = 0 }), // Warrior
+        animals_dense_sprite_map.get(.{ .x = 1, .y = 0 }), // Bear
     };
     const enemy_race_colour_lookup: [std.meta.fields(EnemyRace).len]Colour = .{
         .{ .r = 0, .g = 255, .b = 0 }, // Goblin
+        .{ .r = 0x79, .g = 0x5c, .b = 0x34 }, // Beast
     };
 
     var surface_info = getSurface(window);
     var event: c.SDL_Event = undefined;
     var enemies_state: [room_count - 1]EnemyState = undefined;
-    for (1..room_count) |i| {
+    inline for (1..room_count) |i| {
         const room = rooms[i];
+        const enemy_type = if (i % 2 == 0) .Warrior else .Bear;
+        const enemy_race = if (i % 2 == 0) .Goblin else .Beast;
         enemies_state[i - 1] = EnemyState{
             .pos = Pos{
                 .x = room.pos.x + random.intRangeLessThan(usize, 0, room.dim.width),
                 .y = room.pos.y + random.intRangeLessThan(usize, 0, room.dim.height),
             },
-            .type = .Warrior,
-            .race = .Goblin,
+            .type = enemy_type,
+            .race = enemy_race,
             .max_health = 10,
             .current_health = 10,
         };
