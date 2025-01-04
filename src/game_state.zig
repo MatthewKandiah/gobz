@@ -3,6 +3,7 @@ const Pos = @import("pos.zig").Pos;
 const Disp = @import("disp.zig").Disp;
 const Map = @import("map.zig").Map;
 const drawLine = @import("draw_line.zig").drawLine;
+const EnemyState = @import("enemy_state.zig").EnemyState;
 
 pub const GameState = struct {
     player_pos: Pos,
@@ -10,7 +11,7 @@ pub const GameState = struct {
     window_resized: bool,
     running: bool,
     scale: usize,
-    bears_pos: []Pos,
+    enemies: []EnemyState,
 
     const Self = @This();
 
@@ -60,5 +61,4 @@ pub const GameState = struct {
             }
         }
     }
-
 };

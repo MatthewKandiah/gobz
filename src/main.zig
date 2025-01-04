@@ -14,6 +14,11 @@ const Pixel = @import("pixel.zig").Pixel;
 const Rect = @import("rect.zig").Rect;
 const VisibilityValue = @import("visibility_value.zig").VisibilityValue;
 const Profiler = @import("profiler.zig").Profiler;
+const EnemyState = @import("enemy_state.zig").EnemyState;
+const EnemyType = @import("enemy_type.zig").EnemyType;
+const EnemyRace = @import("enemy_race.zig").EnemyRace;
+const DenseRenderInfo = @import("render_info.zig").DenseRenderInfo;
+const Colour = @import("colour.zig").Colour;
 
 const DEFAULT_WIDTH = 800;
 const DEFAULT_HEIGHT = 800;
@@ -94,9 +99,10 @@ pub fn main() !void {
     // assets from https://sethbb.itch.io/32rogues
     const rogues_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/rogues.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
     const rogues_dense_sprite_map = try rogues_sprite_map.toDense(allocator);
-    const animals_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/animals.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
-    const animals_dense_sprite_map = try animals_sprite_map.toDense(allocator);
+    // TODO - way to just fill a rect
     const tiles_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/tiles.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const monsters_sprite_map = try SpriteMap.load(allocator, "./sprites/32rogues/monsters.png", INPUT_SPRITE_DIM_PIXELS, Pixel{ .a = 0 });
+    const monsters_dense_sprite_map = try monsters_sprite_map.toDense(allocator);
 
     const sdl_init = c.SDL_Init(c.SDL_INIT_VIDEO | c.SDL_INIT_TIMER | c.SDL_INIT_EVENTS);
     if (sdl_init != 0) {
@@ -112,18 +118,30 @@ pub fn main() !void {
         c.SDL_WINDOW_RESIZABLE,
     ) orelse @panic("no window");
 
+    // TODO - can this all move to comptime? Then these can be methods on the enum
     const rogue_render_data = rogues_dense_sprite_map.get(.{ .x = 0, .y = 0 });
-    const bear_render_data = animals_dense_sprite_map.get(.{ .x = 1, .y = 0 });
     const floor_tile_render_data = tiles_sprite_map.get(.{ .x = 0, .y = 1 });
+    const enemy_type_render_info_lookup: [std.meta.fields(EnemyType).len]DenseRenderInfo = .{
+        monsters_dense_sprite_map.get(.{ .x = 0, .y = 0 }), // Warrior
+    };
+    const enemy_race_colour_lookup: [std.meta.fields(EnemyRace).len]Colour = .{
+        .{ .r = 0, .g = 255, .b = 0 }, // Goblin
+    };
 
     var surface_info = getSurface(window);
     var event: c.SDL_Event = undefined;
-    var bears_pos: [room_count - 1]Pos = undefined;
+    var enemies_state: [room_count - 1]EnemyState = undefined;
     for (1..room_count) |i| {
         const room = rooms[i];
-        bears_pos[i - 1] = .{
-            .x = room.pos.x + random.intRangeLessThan(usize, 0, room.dim.width),
-            .y = room.pos.y + random.intRangeLessThan(usize, 0, room.dim.height),
+        enemies_state[i - 1] = EnemyState{
+            .pos = Pos{
+                .x = room.pos.x + random.intRangeLessThan(usize, 0, room.dim.width),
+                .y = room.pos.y + random.intRangeLessThan(usize, 0, room.dim.height),
+            },
+            .type = .Warrior,
+            .race = .Goblin,
+            .max_health = 10,
+            .current_health = 10,
         };
     }
     var game_state = GameState{
@@ -132,7 +150,7 @@ pub fn main() !void {
         .window_resized = false,
         .running = true,
         .scale = 2,
-        .bears_pos = &bears_pos,
+        .enemies = &enemies_state,
     };
 
     while (game_state.running) {
@@ -150,7 +168,16 @@ pub fn main() !void {
             .pos = Pos{ .x = 0, .y = 0 },
         };
         surface_info.drawMap(map, clipping_rect, sprite_dim_pixels, floor_tile_render_data, game_state.player_pos, game_state.scale);
-        surface_info.drawBears(map, clipping_rect, sprite_dim_pixels, bear_render_data, game_state.bears_pos, game_state.player_pos, game_state.scale);
+        surface_info.drawEnemies(
+            map,
+            clipping_rect,
+            sprite_dim_pixels,
+            &enemy_type_render_info_lookup,
+            &enemy_race_colour_lookup,
+            game_state.enemies,
+            game_state.player_pos,
+            game_state.scale,
+        );
         surface_info.drawPlayer(clipping_rect, sprite_dim_pixels, rogue_render_data, game_state.scale);
 
         while (c.SDL_PollEvent(@ptrCast(&event)) != 0) {
