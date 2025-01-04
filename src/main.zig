@@ -29,6 +29,9 @@ const MAP_WIDTH = 200;
 const MAP_HEIGHT = 100;
 pub const MAP_MAX_DIMENSION = @max(MAP_WIDTH, MAP_HEIGHT);
 
+// TODO - font sprite sheet
+// TODO - render text box
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
@@ -206,6 +209,8 @@ pub fn main() !void {
                 game_state.window_resized = true;
             }
         }
+        
+        // TODO - enemies move
 
         if (game_state.window_resized) {
             game_state.window_resized = false;
