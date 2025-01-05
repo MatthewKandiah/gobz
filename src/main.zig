@@ -31,6 +31,7 @@ pub const MAP_MAX_DIMENSION = @max(MAP_WIDTH, MAP_HEIGHT);
 
 // TODO - font sprite sheet
 // TODO - render text box
+// TODO - path finding from Point A to Point B
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
